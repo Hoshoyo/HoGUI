@@ -8,8 +8,6 @@
 #include <iostream>
 #endif
 
-bool is_down[512] = {};
-
 HWND window_handle;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -51,11 +49,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_RBUTTONUP:
 		break;
 	case WM_KEYDOWN:
-		is_down[wParam] = true;
 		std::cout << (char)wParam;
 		break;
 	case WM_KEYUP:
-		is_down[wParam] = false;
 		break;
 	case WM_MOUSEWHEEL:
 		break;
