@@ -2,75 +2,87 @@
 #include <windowsx.h>
 #include <GL/glew.h>
 #include <GL/wglew.h>
+
 #include "font_render.h"
+#include "shader_loader.h"
+#include "graphics/shader.h"
 
 #ifdef _DEBUG
 #include <iostream>
 #endif
 
-bool is_down[512] = {};
-
 HWND window_handle;
+WINDOWPLACEMENT g_wpPrev = { sizeof(g_wpPrev) };
+
+void ToggleFullScreen(HWND hwnd)
+{
+	DWORD dwStyle = GetWindowLong(hwnd, GWL_STYLE);
+	if (dwStyle & WS_OVERLAPPEDWINDOW)
+	{
+		MONITORINFO mi = { sizeof(mi) };
+		if (GetWindowPlacement(hwnd, &g_wpPrev) &&
+			GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY), &mi))
+		{
+			SetWindowLong(hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+			SetWindowPos(hwnd, HWND_TOP,
+				mi.rcMonitor.left, mi.rcMonitor.top,
+				mi.rcMonitor.right - mi.rcMonitor.left,
+				mi.rcMonitor.bottom - mi.rcMonitor.top,
+				SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+		}
+	}
+	else
+	{
+		SetWindowLong(hwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+		SetWindowPlacement(hwnd, &g_wpPrev);
+		SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	}
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	auto getLowerCase = [](int c) -> int
-	{
-		if (c > 0x40 && c < 0x5A)	// A - Z
-			c += 32;
-		return c;
-	};
-	auto isExtendedKey = [](int key) -> bool
-	{
-		// if 24th bit is 1 then the key is extended
-		// Alt or ctrl key
-		if ((key & 0x1000000) != 0)
-			return true;
-		return false;
-	};
-
 	switch (message)
 	{
+	case WM_MOUSEMOVE: {
+		int xPos = GET_X_LPARAM(lParam);
+		int yPos = GET_Y_LPARAM(lParam);
+	} break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
-	case WM_MOUSELEAVE:
-		//std::cout << "mouse left\n";
-		break;
-	case WM_MOUSEMOVE:
-		std::cout << LOWORD(lParam) << " " << HIWORD(lParam) << "\n";
-		break;
 	case WM_LBUTTONDOWN:
-		SetCapture(window_handle);
+		SetCapture(GetActiveWindow());
 		break;
 	case WM_LBUTTONUP:
 		ReleaseCapture();
 		break;
-	case WM_RBUTTONDOWN:
-		break;
-	case WM_RBUTTONUP:
-		break;
 	case WM_KEYDOWN:
-		is_down[wParam] = true;
-		std::cout << (char)wParam;
+		switch (LOWORD(wParam))
+		{
+		case 'F': ToggleFullScreen(hWnd); break;
+		case VK_ESCAPE: PostQuitMessage(0); break;
+		}
 		break;
 	case WM_KEYUP:
-		is_down[wParam] = false;
 		break;
-	case WM_MOUSEWHEEL:
+	case WM_SYSKEYDOWN:
+		break;
+	case WM_SYSKEYUP:
 		break;
 	case WM_CHAR:
 		break;
-	case WM_SIZE:
-		std::cout << "deu resize\n";
-		break;
+	case WM_SIZE: {
+		RECT r;
+		GetClientRect(hWnd, &r);
+		glViewport(0, 0, r.right - r.left, r.bottom - r.top);
+	} break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
-		break;
 	}
 	return 0;
 }
-
 void InitOpenGL(HWND window_handle, HDC& device_context, HGLRC& rendering_context)
 {
 	int PixelFormat;
@@ -168,13 +180,16 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	mouse_event.dwHoverTime = HOVER_DEFAULT;
 	mouse_event.hwndTrack = window_handle;
 
-	FontRenderer* fr = new FontRenderer(512, 60, glm::vec4(1, 1, 1, 1));
+	// TEMP
+	FontInfo font_info;
+	LoadFreetype("res/LiberationMono-Regular.ttf", 96, &font_info);
+	FontShader shader = {};
+	shader.id = LoadShader("res/shaders/normal.vs", "res/shaders/normal.fs");
+	SetOrthoProjection(&shader.projection_matrix, 800.0f, 600.0f);
 
 	while (running)
 	{
 		TrackMouseEvent(&mouse_event);
-
-		// input
 
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0)
 		{
@@ -187,10 +202,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// render
+		RenderText(&shader, "Xãoñ Zé", 0, 0, 1);
 	
-		char text[] = "Hello World!";									 // TEMP
-		fr->RenderText(text, sizeof(text), 0, 0, 200, true);			 // TEMP
-
 		SwapBuffers(device_context);
 	}
 
