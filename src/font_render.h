@@ -9,33 +9,31 @@
 
 #define NUMBER_CHARACTERS 1024
 
+struct Character {
+	GLuint     TextureID;
+	glm::ivec2 Size;
+	glm::ivec2 Bearing;
+	GLint      Advance;
+};
+
 struct FontInfo
 {
 	int max_height;
 	int max_width;
 	int has_kerning;
+	GLuint font_vao, font_vbo;
+	Character Characters[NUMBER_CHARACTERS];
 };
-
-struct Character {
-	GLuint     TextureID;  // ID handle of the glyph texture
-	glm::ivec2 Size;       // Size of glyph
-	glm::ivec2 Bearing;    // Offset from baseline to left/top of glyph
-	GLint      Advance;    // Offset to advance to next glyph
-};
-
-Character Characters[NUMBER_CHARACTERS];
-
-GLuint font_vao, font_vbo;
 
 void LoadFreetype(char* font, int pixel_height, FontInfo* info)
 {
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
-		PLATFORM_ERROR("Could not init FreeType Library", "Freetype Error");
+		PLATFORM_FATAL_ERROR("Could not init FreeType Library", "Freetype Error");
 
 	FT_Face face;
 	if (FT_New_Face(ft, font, 0, &face))
-		PLATFORM_ERROR("Failed to load font", "Freetype Error");
+		PLATFORM_FATAL_ERROR("Failed to load font", "Freetype Error");
 
 	FT_Set_Pixel_Sizes(face, 0, pixel_height);
 
@@ -85,16 +83,16 @@ void LoadFreetype(char* font, int pixel_height, FontInfo* info)
 			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
 			face->glyph->advance.x
 		};
-		Characters[c] = character;
+		info->Characters[c] = character;
 	}
 
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 	
-	glGenVertexArrays(1, &font_vao);
-	glGenBuffers(1, &font_vbo);
-	glBindVertexArray(font_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
+	glGenVertexArrays(1, &info->font_vao);
+	glGenBuffers(1, &info->font_vbo);
+	glBindVertexArray(info->font_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, info->font_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
@@ -103,7 +101,7 @@ void LoadFreetype(char* font, int pixel_height, FontInfo* info)
 
 }
 
-void RenderText(FontShader* shader, char* text, GLfloat x, GLfloat y, GLfloat scale)
+void RenderText(FontInfo* info, FontShader* shader, char* text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4* color)
 {
 	glUseProgram(shader->id);
 	glActiveTexture(GL_TEXTURE0);
@@ -111,11 +109,11 @@ void RenderText(FontShader* shader, char* text, GLfloat x, GLfloat y, GLfloat sc
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glBindVertexArray(font_vao);
+	glBindVertexArray(info->font_vao);
 
 	for(unsigned char c = text[0], i = 0; text[i] != '\0'; ++i, c = text[i])
 	{
-		Character ch = Characters[c];
+		Character ch = info->Characters[c];
 
 		GLfloat xpos = x + ch.Bearing.x * scale;
 		GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
@@ -134,10 +132,11 @@ void RenderText(FontShader* shader, char* text, GLfloat x, GLfloat y, GLfloat sc
 		};
 
 		glUniformMatrix4fv(shader->uni_projection, 1, GL_FALSE, &shader->projection_matrix[0][0]);
+		glUniform4fv(shader->uni_color, 1, (GLfloat *)color);
 
 		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
 
-		glBindBuffer(GL_ARRAY_BUFFER, font_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, info->font_vbo);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 

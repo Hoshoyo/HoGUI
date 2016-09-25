@@ -35,7 +35,7 @@ GLuint CreateShader(const char* vert_shader, const char* frag_shader, GLint vert
 	{
 		char error_buffer[ERROR_BUFFER_SIZE] = {};
 		glGetShaderInfoLog(vs_id, sizeof(error_buffer), NULL, error_buffer);
-		PLATFORM_ERROR(error_buffer, "Vertex shader compile error");
+		PLATFORM_FATAL_ERROR(error_buffer, "Vertex shader compile error");
 		return -1;
 	}
 
@@ -45,7 +45,7 @@ GLuint CreateShader(const char* vert_shader, const char* frag_shader, GLint vert
 	{
 		char error_buffer[ERROR_BUFFER_SIZE] = {};
 		glGetShaderInfoLog(fs_id, sizeof(error_buffer), NULL, error_buffer);
-		PLATFORM_ERROR(error_buffer, "Fragment shader compile error");
+		PLATFORM_FATAL_ERROR(error_buffer, "Fragment shader compile error");
 		return -1;
 	}
 
@@ -59,7 +59,7 @@ GLuint CreateShader(const char* vert_shader, const char* frag_shader, GLint vert
 	{
 		GLchar error_buffer[ERROR_BUFFER_SIZE] = {};
 		glGetProgramInfoLog(shader_id, sizeof(error_buffer), NULL, error_buffer);
-		PLATFORM_ERROR(error_buffer, "Shader linking error");
+		PLATFORM_FATAL_ERROR(error_buffer, "Shader linking error");
 		return -1;
 	}
 
@@ -76,7 +76,7 @@ GLuint LoadShader(const char* vs_filename, const char* fs_filename)
 	{
 		char buffer[ERROR_BUFFER_SIZE] = "Could not open file ";
 		Concatenate(buffer, vs_filename, ERROR_BUFFER_SIZE);
-		PLATFORM_ERROR(buffer, "");
+		PLATFORM_FATAL_ERROR(buffer, "");
 		return -1;
 	}
 	DWORD vs_size = GetFileSize(vs_file, 0);
