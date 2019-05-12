@@ -1,2 +1,2 @@
-# HoGUI
-Simple C++ library for making GUIs.
+# HoGui
+Simple C library for making GUIs.
