@@ -201,19 +201,8 @@ hogui_render(Font_Info* font_info) {
         hogui_reset_scope(w->scope_at);
     }
 
-    FRII ii = {
-        .flags = FONT_RENDER_INFO_DO_RENDER,
-        .bb = (BBox){0.0f, 0.0f, FLT_MAX, FLT_MAX},
-        .position = (vec2){10.0f, 10.0f},
-        .color = (vec4){1.0f, 1.0f, 1.0f, 1.0f},
-        .tab_space = 3,
-    };
-    char buffer[256] = {0};
-    r32 mx, my;
-    input_get_mouse_pos(&mx, &my);
-    sprintf(buffer, "%.2f %.2f", mx, my);
-    ustring s = ustring_new_utf8(buffer);
-
-    font_render_text(font_info, &ii, s);
-    ustring_free(&s);
+    // Debug information
+    r32 mouse_x, mouse_y;
+    input_get_mouse_pos(&mouse_x, &mouse_y);
+    renderer_imm_debug_text(font_info, (vec2){5.0f, 5.0f}, "Mouse: %.2f %.2f", mouse_x, mouse_y);    
 }

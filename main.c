@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <GLFW/glfw3.h>
 #include <ho_gl.h>
+#include <light_array.h>
 #include <gm.h>
 #include "os.h"
 #include "input.h"
@@ -54,6 +55,7 @@ int main() {
 	};
 	HoGui_Window* m = hogui_new_window(&w, 0);
 
+	HoGui_Window** ws = array_new(HoGui_Window*);
 	for(int i = 0; i < 10; ++i) {		
 		HoGui_Window ww = {
 			.flags = HOGUI_WINDOW_FLAG_TOPDOWN|HOGUI_WINDOW_FLAG_CLIP_CHILDREN,
@@ -63,6 +65,7 @@ int main() {
 			.bg_color = (vec4){0.0f, 1.0f, 0.0f, 1.0f},
 		};
 		HoGui_Window* mm = hogui_new_window(&ww, m);
+		array_push(ws, mm);
 	}
 
 	//HoGui_Window w3 = {
@@ -90,6 +93,23 @@ int main() {
 					case KEYBOARD_KEY_PRESS: {
 						if(e.keyboard.unicode == GLFW_KEY_ESCAPE)
 							running = false;
+						if(e.keyboard.unicode == 'X') {
+							if(array_length(ws) > 0) {
+								hogui_delete_window(ws[array_length(ws) - 1]);
+								array_pop(ws);
+							}
+						}
+						if(e.keyboard.unicode == 'A') {
+							HoGui_Window ww = {
+								.flags = HOGUI_WINDOW_FLAG_TOPDOWN|HOGUI_WINDOW_FLAG_CLIP_CHILDREN,
+								.position = (vec2){20.0f, 10.0f},
+								.width = 200.0f,
+								.height = 40.0f,
+								.bg_color = (vec4){0.0f, 1.0f, 0.0f, 1.0f},
+							};
+							HoGui_Window* mm = hogui_new_window(&ww, m);
+							array_push(ws, mm);
+						}
 					}break;
 					default: break;
 				}

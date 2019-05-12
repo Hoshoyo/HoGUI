@@ -47,4 +47,5 @@ typedef struct HoGui_Window_t {
 
 int hogui_init();
 int hogui_render(Font_Info*);
+int hogui_delete_window(HoGui_Window* w);
 HoGui_Window* hogui_new_window(HoGui_Window* in_info, HoGui_Window* parent);

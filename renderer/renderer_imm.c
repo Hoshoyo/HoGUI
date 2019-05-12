@@ -4,6 +4,8 @@
 #include <ho_gl.h>
 #include <string.h>
 #include <float.h>
+#include <stdarg.h>
+#include "../font/ustring.h"
 
 typedef struct {
 	u32 quad_vao;
@@ -337,4 +339,28 @@ clipping_rect_merge(Clipping_Rect a, Clipping_Rect b) {
 	result.w = MIN(a.w - (result.y - a.y), b.w - (result.y - b.y));
 
 	return result;
+}
+
+int 
+renderer_imm_debug_text(Font_Info* font_info, vec2 position, char* fmt, ...) {
+	char buffer[1024] = {0};
+	va_list args;
+	va_start(args, fmt);
+	int num_written = vsprintf(buffer, fmt, args);
+	va_end(args);
+
+	ustring s = ustring_new_utf8(buffer);
+
+	FRII ii = {
+        .flags = FONT_RENDER_INFO_DO_RENDER,
+        .bb = (BBox){0.0f, 0.0f, FLT_MAX, FLT_MAX},
+        .position = position,
+        .color = (vec4){1.0f, 1.0f, 1.0f, 1.0f},
+        .tab_space = 3,
+    };
+
+    font_render_text(font_info, &ii, s);
+    ustring_free(&s);
+
+	return num_written;
 }

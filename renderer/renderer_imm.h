@@ -1,5 +1,6 @@
 #pragma once
 #include "../common.h"
+#include "../font/font_render.h"
 #include <gm.h>
 
 typedef struct Vertex_3D {
@@ -28,6 +29,7 @@ void renderer_immediate_global_position(vec3 p);
 // Debug rendering functions
 void renderer_imm_debug_box(r32 x, r32 y, r32 width, r32 height, vec4 color);
 void renderer_imm_debug_line(vec2 start, vec2 end, vec4 color);
+int  renderer_imm_debug_text(Font_Info* font_info, vec2 position, char* fmt, ...);
 
 // Quad_2D functions
 Quad_2D quad_new(vec2 position, r32 width, r32 height, vec4 color);

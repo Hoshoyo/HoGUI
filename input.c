@@ -3,6 +3,7 @@
 #include <locale.h>
 #include "input.h"
 #include "event.h"
+#include <math.h>
 
 typedef struct {
 	r32 w_width, w_height;
@@ -22,8 +23,8 @@ void window_get_size(s32* width, s32* height) {
 }
 
 void input_get_mouse_pos(r32* x, r32* y) {
-	*x = input_mouse.x;
-	*y = input_mouse.w_height - input_mouse.y;
+	*x = roundf(input_mouse.x);
+	*y = input_mouse.w_height - roundf(input_mouse.y);
 }
 
 const char* input_get_clipboard() {
