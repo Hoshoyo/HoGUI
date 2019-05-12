@@ -5,6 +5,7 @@
 #include "event.h"
 
 typedef struct {
+	r32 w_width, w_height;
 	r32 x;
 	r32 y;
 } Mouse_State;
@@ -18,6 +19,11 @@ void input_init(GLFWwindow* window) {
 
 void window_get_size(s32* width, s32* height) {
 	glfwGetFramebufferSize(glfw_window, width, height);
+}
+
+void input_get_mouse_pos(r32* x, r32* y) {
+	*x = input_mouse.x;
+	*y = input_mouse.w_height - input_mouse.y;
 }
 
 const char* input_get_clipboard() {
@@ -37,6 +43,8 @@ framebuffer_size_callback(GLFWwindow* window, s32 width, s32 height) {
 	e.window.width = width;
 	e.window.height = height;
 	event_push(&e);
+	input_mouse.w_width = width;
+	input_mouse.w_height = height;
 }
 
 static void

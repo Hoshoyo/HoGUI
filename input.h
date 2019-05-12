@@ -21,6 +21,7 @@ void      input_set_callbacks(GLFWwindow* window);
 const s8* input_get_clipboard();
 void      input_set_state(Input_State state);
 void      input_cycle_state();
+void      input_get_mouse_pos(r32* x, r32* y);
 
 // Window functions
 void      window_get_size(s32* width, s32* height);

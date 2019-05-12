@@ -114,7 +114,7 @@ font_render_text(Font_Info* font_info, FRII* info, ustring str) {
 				renderer_imm_quad(&q);
 			}
 #if 0
-			renderer_imm_debug_box(rect.x, rect.y, rect.width, rect.height, (vec4) { 1.0f, 1.0f, 0.0f, 1.0f });
+			renderer_imm_debug_box(rect.x, rect.y, rect.width, rect.height, (vec4) { 1.0f, 1.0f, 0.0f, 0.5f });
 #endif
 
 			if (info->cursor_index == result.count && r == 0) {

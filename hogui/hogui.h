@@ -2,6 +2,7 @@
 #include "../common.h"
 #include "../renderer/renderer_imm.h"
 #include <gm.h>
+#include "../font/font_render.h"
 
 typedef void* HoGui_Node;
 
@@ -34,8 +35,8 @@ enum {
 typedef struct HoGui_Window_t {
     u32  flags;
     r32  width, height;
-    vec2 position;
-    vec4 bg_color;
+    vec2 position, absolute_position;
+    vec4 bg_color, hover_color;
 
     Scope* scope_at;
     Scope  scope_defined;
@@ -45,5 +46,5 @@ typedef struct HoGui_Window_t {
 
 
 int hogui_init();
-int hogui_render();
+int hogui_render(Font_Info*);
 HoGui_Window* hogui_new_window(HoGui_Window* in_info, HoGui_Window* parent);

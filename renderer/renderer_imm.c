@@ -126,17 +126,17 @@ renderer_imm_init()
 	imm_ctx.valid = true;
 }
 
-void renderer_imm_quad(Quad_2D* quad) {
+Quad_2D* renderer_imm_quad(Quad_2D* quad) {
 	if (!imm_ctx.valid) {
 		renderer_imm_init();
 		if (!imm_ctx.valid) {
 			printf("Could not initialize immediate context rendering\n");
-			return;
+			return 0;
 		}
 	}
 
 	if (imm_ctx.quad_count == imm_ctx.quad_max_count) {
-		return;
+		return 0;
 	}
 
 	if (!imm_ctx.prerendering) {
@@ -153,6 +153,8 @@ void renderer_imm_quad(Quad_2D* quad) {
 	memcpy(q, quad, sizeof(Quad_2D));
 
 	imm_ctx.quad_count++;
+
+	return q;
 }
 
 void
@@ -330,7 +332,7 @@ clipping_rect_merge(Clipping_Rect a, Clipping_Rect b) {
 	Clipping_Rect result = {0};
 
 	result.x = MAX(a.x, b.x);	// x
-	result.y = MAX(a.x, b.x);	// y
+	result.y = MAX(a.y, b.y);	// y
 	result.z = MIN(a.z - (result.x - a.x), b.z - (result.x - b.x));
 	result.w = MIN(a.w - (result.y - a.y), b.w - (result.y - b.y));
 

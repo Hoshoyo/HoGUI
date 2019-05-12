@@ -3,6 +3,7 @@
 #include "../renderer/renderer_imm.h"
 #include <light_array.h>
 #include <assert.h>
+#include "../input.h"
 
 #define Unimplemented assert(0)
 
@@ -104,12 +105,14 @@ hogui_window_position(HoGui_Window* w) {
     HoGui_Window* parent = (HoGui_Window*)w->scope_at->defining_window;
     if(parent) {
         vec2 result = {0};
+        vec2 offset_pos = w->position;
         if(hogui_scope_flag_is_set(w->scope_at, HOGUI_WINDOW_FLAG_TOPDOWN)) {
             // height of the parent
             result.y += ((HoGui_Window*)w->scope_at->defining_window)->height;
             result.y -= w->height;
+            offset_pos.y = -offset_pos.y;
         }
-        return gm_vec2_add(gm_vec2_add(w->position, hogui_window_position(parent)), result);
+        return gm_vec2_add(gm_vec2_add(offset_pos, hogui_window_position(parent)), result);
     } else {
         return w->position;
     }
@@ -135,6 +138,17 @@ hogui_scope_adjustment(HoGui_Window* w) {
     }
 }
 
+bool
+hogui_window_is_hovered(HoGui_Window* w) {
+    r32 mouse_x, mouse_y;
+    input_get_mouse_pos(&mouse_x, &mouse_y);
+
+    return (
+        (mouse_x >= w->absolute_position.x && mouse_x <= w->absolute_position.x + w->width) && 
+        (mouse_y >= w->absolute_position.y && mouse_y <= w->absolute_position.y + w->height)
+    );
+}
+
 int
 hogui_render_window(HoGui_Window* w) {
     Scope* current_scope = w->scope_at;
@@ -143,19 +157,21 @@ hogui_render_window(HoGui_Window* w) {
     vec2 base_position = hogui_window_position(w);
     vec2 scope_adjustment = hogui_scope_adjustment(w);
     vec2 position = gm_vec2_add(base_position, scope_adjustment);
+    w->absolute_position = position;
 
     Quad_2D q = quad_new_clipped(position, w->width, w->height, w->bg_color, current_scope->clipping);
-    renderer_imm_quad(&q);
+    Quad_2D* q_rendered = renderer_imm_quad(&q);
 
     // Update scope
     current_scope->max_x += (w->position.x + w->width);
     current_scope->max_y += (w->position.y + w->height);
 
     // Merge the clipping downwards
+    Clipping_Rect c = {0.0f, 0.0f, FLT_MAX, FLT_MAX};
     if(w->flags & HOGUI_WINDOW_FLAG_CLIP_CHILDREN) {
-        Clipping_Rect c = clipping_rect_new(position.x, position.y, w->width, w->height);
-        w->scope_defined.clipping = clipping_rect_merge(current_scope->clipping, c);
+        c = clipping_rect_new(position.x, position.y, w->width, w->height);
     }
+    w->scope_defined.clipping = clipping_rect_merge(current_scope->clipping, c);
 
     // Render children
     if(w->children) {
@@ -165,10 +181,18 @@ hogui_render_window(HoGui_Window* w) {
         // Reset scope
         hogui_reset_scope(&w->scope_defined);
     }
+
+    if(hogui_window_is_hovered(w)) {
+        vec4 color = gm_vec4_add(w->bg_color, (vec4){-0.2f, -0.2f, -0.2f, 0.0f});
+        q_rendered->vertices[0].color = color;
+        q_rendered->vertices[1].color = color;
+        q_rendered->vertices[2].color = color;
+        q_rendered->vertices[3].color = color;
+    }
 }
 
 int
-hogui_render() {
+hogui_render(Font_Info* font_info) {
     hogui_reset_scope(&global_window.scope_defined);
     for(u64 i = 0; i < array_length(global_window.children); ++i) {
         HoGui_Window* w = global_window.children[i];
@@ -176,4 +200,20 @@ hogui_render() {
         // Reset scope
         hogui_reset_scope(w->scope_at);
     }
+
+    FRII ii = {
+        .flags = FONT_RENDER_INFO_DO_RENDER,
+        .bb = (BBox){0.0f, 0.0f, FLT_MAX, FLT_MAX},
+        .position = (vec2){10.0f, 10.0f},
+        .color = (vec4){1.0f, 1.0f, 1.0f, 1.0f},
+        .tab_space = 3,
+    };
+    char buffer[256] = {0};
+    r32 mx, my;
+    input_get_mouse_pos(&mx, &my);
+    sprintf(buffer, "%.2f %.2f", mx, my);
+    ustring s = ustring_new_utf8(buffer);
+
+    font_render_text(font_info, &ii, s);
+    ustring_free(&s);
 }
