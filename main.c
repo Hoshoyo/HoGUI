@@ -110,8 +110,18 @@ int main() {
 							HoGui_Window* mm = hogui_new_window(&ww, m);
 							array_push(ws, mm);
 						}
-					}break;
+					} break;
 					default: break;
+				}
+			} else if(e.type == EVENT_MOUSE_INPUT) {
+				switch(e.mouse.type) {
+					case MOUSE_BUTTON_PRESS: {
+						printf("Clicked at %f %f\n", e.mouse.x, e.mouse.y);
+					}break;
+					case MOUSE_BUTTON_RELEASE: {
+						printf("Released at %f %f\n", e.mouse.x, e.mouse.y);
+					}break;
+					default:break;
 				}
 			}
 		}

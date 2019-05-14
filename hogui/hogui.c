@@ -10,6 +10,9 @@
 static HoGui_Window global_window;
 static s32          global_id;
 
+static HoGui_Window* global_hovered;
+static Quad_2D*      global_hovered_quad;
+
 int 
 hogui_init() {
     global_window.children = array_new(HoGui_Window*);
@@ -173,6 +176,11 @@ hogui_render_window(HoGui_Window* w) {
     }
     w->scope_defined.clipping = clipping_rect_merge(current_scope->clipping, c);
 
+    if(hogui_window_is_hovered(w)) {
+        global_hovered = w;
+        global_hovered_quad = q_rendered;
+    }
+
     // Render children
     if(w->children) {
         for(u64 i = 0; i < array_length(w->children); ++i) {
@@ -181,24 +189,25 @@ hogui_render_window(HoGui_Window* w) {
         // Reset scope
         hogui_reset_scope(&w->scope_defined);
     }
-
-    if(hogui_window_is_hovered(w)) {
-        vec4 color = gm_vec4_add(w->bg_color, (vec4){-0.2f, -0.2f, -0.2f, 0.0f});
-        q_rendered->vertices[0].color = color;
-        q_rendered->vertices[1].color = color;
-        q_rendered->vertices[2].color = color;
-        q_rendered->vertices[3].color = color;
-    }
 }
 
 int
 hogui_render(Font_Info* font_info) {
+    global_hovered = 0;
     hogui_reset_scope(&global_window.scope_defined);
     for(u64 i = 0; i < array_length(global_window.children); ++i) {
         HoGui_Window* w = global_window.children[i];
         hogui_render_window(w);
         // Reset scope
         hogui_reset_scope(w->scope_at);
+    }
+
+    if(global_hovered) {
+        vec4 color = gm_vec4_add(global_hovered->bg_color, (vec4){-0.2f, -0.2f, -0.2f, 0.0f});
+        global_hovered_quad->vertices[0].color = color;
+        global_hovered_quad->vertices[1].color = color;
+        global_hovered_quad->vertices[2].color = color;
+        global_hovered_quad->vertices[3].color = color;
     }
 
     // Debug information
