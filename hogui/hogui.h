@@ -3,6 +3,7 @@
 #include "../renderer/renderer_imm.h"
 #include <gm.h>
 #include "../font/font_render.h"
+#include "../event.h"
 
 typedef void* HoGui_Node;
 
@@ -32,11 +33,17 @@ enum {
     HOGUI_WINDOW_FLAG_CLIP_CHILDREN = FLAG(3),
 };
 
+enum {
+    HOGUI_WINDOW_TEMP_FLAG_HOVERED = FLAG(0),
+    HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED = FLAG(1),
+};
+
 typedef struct HoGui_Window_t {
-    u32  flags;
+    u32  flags, temp_flags;
     r32  width, height;
     vec2 position, absolute_position;
     vec4 bg_color, hover_color;
+    const char* name;
 
     Scope* scope_at;
     Scope  scope_defined;
@@ -49,3 +56,8 @@ int hogui_init();
 int hogui_render(Font_Info*);
 int hogui_delete_window(HoGui_Window* w);
 HoGui_Window* hogui_new_window(HoGui_Window* in_info, HoGui_Window* parent);
+
+int hogui_input(Event* e);
+int hogui_update();
+
+void hogui_test();
