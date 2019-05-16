@@ -24,6 +24,11 @@ hogui_init() {
     global_window.scope_at = &global_window.scope_defined;
     global_window.flags = HOGUI_WINDOW_FLAG_GLOBAL;
 
+    int width, height;
+    window_get_size(&width, &height);
+    global_window.width = (r32)width;
+    global_window.height = (r32)height;
+
     // global_scope
     global_window.scope_defined.defining_window = (struct HoGui_Window*)&global_window;
     global_window.scope_defined.id = global_id++;
@@ -188,6 +193,7 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
     if(position.y < 0.0f)
         position.y = 0.0f;
 
+    // Limit the right and top borders
     if((scope_width - w->width > 0) && (position.x > scope_width - w->width)) {
         position.x = scope_width - w->width;
     }
@@ -195,10 +201,43 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
         position.y = scope_height - w->height;
     }
 
-    r32 abs_x = global_locked_diff.x + w->absolute_position.x;
-    r32 offset_x = abs_x - mouse_current_pos.x + diff.x;
-    if(offset_x > 0.0f) {
-        position.x = start_pos.x;
+    r32 absolute_x = global_locked_diff.x + w->absolute_position.x;
+    r32 absolute_y = global_locked_diff.y + w->absolute_position.y;
+
+    // Calculate the offset from the mouse lock position
+    r32 offset_x = absolute_x - mouse_current_pos.x + diff.x;
+    r32 offset_y = absolute_y - mouse_current_pos.y + diff.y;
+
+    if(start_pos.x < position.x) {
+        // moving right
+        if(offset_x > 0.0f) {
+            position.x = start_pos.x;
+        }
+    } else if(start_pos.x > position.x) {
+        // moving left
+        if(offset_x < 0.0f) {
+            position.x = start_pos.x;
+        }
+    }
+    
+    // When the mouse goes outside of the scope, wait until it is again
+    // in its locked offset to move the window again 
+    if(((HoGui_Window*)w->scope_at->defining_window)->flags & HOGUI_WINDOW_FLAG_TOPDOWN) {
+        if(start_pos.y < position.y && offset_y < 0.0f) {
+            // moving up
+            position.y = start_pos.y;
+        } else if (start_pos.y > position.y && offset_y > 0.0f) {
+            // moving down
+            position.y = start_pos.y;
+        }
+    } else {
+        if(start_pos.y > position.y && offset_y < 0.0f) {
+            // moving up
+            position.y = start_pos.y;
+        } else if (start_pos.y < position.y && offset_y > 0.0f) {
+            // moving down
+            position.y = start_pos.y;
+        }
     }
 
     w->position = position;
@@ -354,12 +393,12 @@ hogui_test() {
 		.width = 520.0f,
 		.height = 768.0f,
 		.position = (vec2){100.0f, 100.0f},
-		.bg_color = (vec4){1.0f, 0.0f, 0.0f, 1.0f},
+		.bg_color = (vec4){0.0f, 0.0f, 0.0f, 1.0f},
 	};
 	HoGui_Window* m = hogui_new_window(&w, 0);
 
 	HoGui_Window** ws = array_new(HoGui_Window*);
-	for(int i = 0; i < 10; ++i) {		
+	for(int i = 0; i < 1; ++i) {		
 		HoGui_Window ww = {
             .name = "Child",
 			.flags = HOGUI_WINDOW_FLAG_CLIP_CHILDREN,
