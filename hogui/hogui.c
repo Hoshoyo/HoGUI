@@ -151,6 +151,27 @@ hogui_scope_adjustment(HoGui_Window* w) {
     } else {
         return (vec2) {0.0f, scope->max_y};
     }
+
+}
+
+bool
+hogui_point_inside_border(vec2 p, HoGui_Window* w, r32 slack, u32* out_flags) {
+	r32 left = w->absolute_position.x;
+	r32 right = w->absolute_position.x + w->width;
+	r32 bot = w->absolute_position.y;
+	r32 top = w->absolute_position.y + w->height;
+
+	bool touching_left = (p.x >= left - slack) && (p.x <= left + slack) && (p.y >= bot - slack) && (p.y <= top + slack);
+	bool touching_right = (p.x >= right - slack) && (p.x <= right + slack) && (p.y >= bot - slack) && (p.y <= top + slack);
+	bool touching_top = (p.y >= top - slack) && (p.y <= top + slack) && (p.x >= left - slack) && (p.x <= right + slack);
+	bool touching_bot = (p.y >= bot - slack) && (p.y <= bot + slack) && (p.x >= left - slack) && (p.x <= right + slack);
+
+	if (touching_left) *out_flags |= HOGUI_SELECTING_BORDER_LEFT;
+	if (touching_right) *out_flags |= HOGUI_SELECTING_BORDER_RIGHT;
+	if (touching_bot) *out_flags |= HOGUI_SELECTING_BORDER_BOTTOM;
+	if (touching_top) *out_flags |= HOGUI_SELECTING_BORDER_TOP;
+
+	return touching_left || touching_right || touching_bot || touching_top;
 }
 
 static bool
@@ -284,8 +305,27 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
 
     // Render border
     if(w->border_size[0] + w->border_size[1] + w->border_size[2] + w->border_size[3] > 0.0f) {
-        vec4 black = (vec4){0.0f, 0.0f, 0.0f, 1.0f};
-        renderer_imm_border(&q, w->border_size, w->border_color);
+        vec4 border_color[4] = {0};
+        border_color[0] = w->border_color[0];
+        border_color[1] = w->border_color[1];
+        border_color[2] = w->border_color[2];
+        border_color[3] = w->border_color[3];
+        if(w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_HOVERED_BORDER) {
+            vec4 red = (vec4) {1.0f, 0.0f, 0.0f, 1.0f};
+            if(w->border_flags & HOGUI_SELECTING_BORDER_LEFT) {
+                border_color[0] = red;
+            }
+            if(w->border_flags & HOGUI_SELECTING_BORDER_RIGHT) {
+                border_color[1] = red;
+            }
+            if(w->border_flags & HOGUI_SELECTING_BORDER_TOP) {
+                border_color[3] = red;
+            }
+            if(w->border_flags & HOGUI_SELECTING_BORDER_BOTTOM) {
+                border_color[2] = red;
+            }
+        }
+        renderer_imm_border(&q, w->border_size, border_color);
     }
 
     // Merge the clipping downwards (meaning, all child windows will clip within the bounds of this one).
@@ -304,6 +344,7 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
 
     // Reset temporary flags
     w->temp_flags = 0;
+    w->border_flags = 0;
 
     // Reset Scope info
     hogui_reset_scope(&w->scope_defined);
@@ -343,6 +384,10 @@ hogui_update_window(HoGui_Window* w) {
         if(hogui_window_is_hovered(w)) {
             global_hovered = w;
         }
+        u32 flags = 0;
+        if(hogui_point_inside_border(mouse_current_pos, w, 3.0f, &flags)) {
+            w->border_flags = flags;
+        }
     }
 
     w->absolute_position = position;
@@ -369,7 +414,10 @@ hogui_update() {
         hogui_update_window(w);
     }
     if(global_hovered) {
-        global_hovered->temp_flags = HOGUI_WINDOW_TEMP_FLAG_HOVERED;
+        global_hovered->temp_flags |= HOGUI_WINDOW_TEMP_FLAG_HOVERED;
+        if(global_hovered->border_flags) {
+            global_hovered->temp_flags |= HOGUI_WINDOW_TEMP_FLAG_HOVERED_BORDER;
+        }
         if(mouse_locked && !global_locked) {
             global_locked = global_hovered;
             global_locked_diff = gm_vec2_subtract(mouse_current_pos, global_locked->absolute_position);
