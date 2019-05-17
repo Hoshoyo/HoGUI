@@ -188,16 +188,16 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
     vec2 start_pos = w->position;
     // Update current window position
     vec2 position = gm_vec2_add(w->position, diff);
-    if(position.x < 0.0f)
+    if(position.x < 0.0f && w->flags & HOGUI_WINDOW_FLAG_CONSTRAIN_X)
         position.x = 0.0f;
-    if(position.y < 0.0f)
+    if(position.y < 0.0f && w->flags & HOGUI_WINDOW_FLAG_CONSTRAIN_Y)
         position.y = 0.0f;
 
     // Limit the right and top borders
-    if((scope_width - w->width > 0) && (position.x > scope_width - w->width)) {
+    if(w->flags & HOGUI_WINDOW_FLAG_CONSTRAIN_X && (scope_width - w->width > 0) && (position.x > scope_width - w->width)) {
         position.x = scope_width - w->width;
     }
-    if((scope_height - w->height > 0) && (position.y > scope_height - w->height)) {
+    if(w->flags & HOGUI_WINDOW_FLAG_CONSTRAIN_Y && (scope_height - w->height > 0) && (position.y > scope_height - w->height)) {
         position.y = scope_height - w->height;
     }
 
@@ -240,12 +240,19 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
         }
     }
 
+    if(w->flags & HOGUI_WINDOW_FLAG_LOCK_MOVE_X) {
+        position.x = start_pos.x;
+    }
+    if(w->flags & HOGUI_WINDOW_FLAG_LOCK_MOVE_Y) {
+        position.y = start_pos.y;
+    }
+
     w->position = position;
     return gm_vec2_subtract(start_pos, position);
 }
 
 static int
-hogui_render_window(HoGui_Window* w) {
+hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
     Scope* current_scope = w->scope_at;
     vec2 position = w->absolute_position;
 
@@ -272,6 +279,7 @@ hogui_render_window(HoGui_Window* w) {
     // Render current window
     Quad_2D q = quad_new_clipped(position, w->width, w->height, color, current_scope->clipping);
     Quad_2D* q_rendered = renderer_imm_quad(&q);
+    renderer_imm_debug_text(font_info, position, "Hello");
 
     // Merge the clipping downwards (meaning, all child windows will clip within the bounds of this one).
     Clipping_Rect c = {0.0f, 0.0f, FLT_MAX, FLT_MAX};
@@ -283,7 +291,7 @@ hogui_render_window(HoGui_Window* w) {
     // Render children
     if(w->children) {
         for(u64 i = 0; i < array_length(w->children); ++i) {
-            hogui_render_window(w->children[i]);
+            hogui_render_window(w->children[i], font_info);
         }
     }
 
@@ -299,7 +307,7 @@ int
 hogui_render(Font_Info* font_info) {
     for(u64 i = 0; i < array_length(global_window.children); ++i) {
         HoGui_Window* w = global_window.children[i];
-        hogui_render_window(w);
+        hogui_render_window(w, font_info);
     }
 
     // Debug information
@@ -389,7 +397,10 @@ void
 hogui_test() {
     HoGui_Window w = {
         .name = "Main",
-		.flags = HOGUI_WINDOW_FLAG_TOPDOWN|HOGUI_WINDOW_FLAG_CLIP_CHILDREN,
+		.flags = 
+            HOGUI_WINDOW_FLAG_TOPDOWN|
+            HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
+            HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
 		.width = 520.0f,
 		.height = 768.0f,
 		.position = (vec2){100.0f, 100.0f},
@@ -398,16 +409,34 @@ hogui_test() {
 	HoGui_Window* m = hogui_new_window(&w, 0);
 
 	HoGui_Window** ws = array_new(HoGui_Window*);
-	for(int i = 0; i < 1; ++i) {		
+	for(int i = 0; i < 1; ++i) {
 		HoGui_Window ww = {
             .name = "Child",
-			.flags = HOGUI_WINDOW_FLAG_CLIP_CHILDREN,
+			.flags = 
+                HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
+                HOGUI_WINDOW_FLAG_CONSTRAIN_X|
+                HOGUI_WINDOW_FLAG_CONSTRAIN_Y|
+                HOGUI_WINDOW_FLAG_LOCK_MOVE_Y,
 			.position = (vec2){20.0f, 10.0f},
-			.width = 200.0f,
-			.height = 40.0f,
+			.width = 300.0f,
+			.height = 300.0f,
 			.bg_color = (vec4){0.0f, 1.0f, 0.0f, 1.0f},
 		};
 		HoGui_Window* mm = hogui_new_window(&ww, m);
 		array_push(ws, mm);
+
+        HoGui_Window www = {
+            .name = "GrandChild",
+			.flags = 
+                HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
+                HOGUI_WINDOW_FLAG_CONSTRAIN_X|
+                HOGUI_WINDOW_FLAG_CONSTRAIN_Y|
+                HOGUI_WINDOW_FLAG_LOCK_MOVE_Y,
+			.position = (vec2){20.0f, 10.0f},
+			.width = 200.0f,
+			.height = 40.0f,
+			.bg_color = (vec4){0.3f, 0.3f, 0.3f, 1.0f},
+		};
+        hogui_new_window(&www, mm);
 	}
 }
