@@ -205,7 +205,7 @@ renderer_imm_flush(u32 font_id)
 }
 
 void
-renderer_imm_border(Quad_2D* q, r32 border_width, vec4 color[4]) {
+renderer_imm_border(Quad_2D* q, r32 border_width[4], vec4 color[4]) {
 	r32 width = q->vertices[1].position.x - q->vertices[0].position.x;
 	r32 height = q->vertices[2].position.y - q->vertices[0].position.y;
 	vec2 position = (vec2) { q->vertices[0].position.x, q->vertices[0].position.y };
@@ -227,9 +227,9 @@ renderer_imm_border(Quad_2D* q, r32 border_width, vec4 color[4]) {
 
 	// left
 	q->vertices[0].position = (vec3) { position.x, position.y, 0.0f };
-	q->vertices[1].position = (vec3) { position.x + border_width, position.y + border_width, 0.0f };
+	q->vertices[1].position = (vec3) { position.x + border_width[0], position.y + border_width[0], 0.0f };
 	q->vertices[2].position = (vec3) { position.x, position.y + height, 0.0f };
-	q->vertices[3].position = (vec3) { position.x + border_width, position.y + height - border_width, 0.0f };
+	q->vertices[3].position = (vec3) { position.x + border_width[0], position.y + height - border_width[0], 0.0f };
 	renderer_imm_quad(q);
 
 	q->vertices[0].color = color[1];
@@ -238,9 +238,9 @@ renderer_imm_border(Quad_2D* q, r32 border_width, vec4 color[4]) {
 	q->vertices[3].color = color[1];
 
 	// right
-	q->vertices[0].position = (vec3) { position.x + width - border_width, position.y + border_width, 0.0f };
+	q->vertices[0].position = (vec3) { position.x + width - border_width[1], position.y + border_width[1], 0.0f };
 	q->vertices[1].position = (vec3) { position.x + width, position.y, 0.0f };
-	q->vertices[2].position = (vec3) { position.x + width - border_width, position.y + height - border_width, 0.0f };
+	q->vertices[2].position = (vec3) { position.x + width - border_width[1], position.y + height - border_width[1], 0.0f };
 	q->vertices[3].position = (vec3) { position.x + width, position.y + height, 0.0f };
 	renderer_imm_quad(q);
 
@@ -252,8 +252,8 @@ renderer_imm_border(Quad_2D* q, r32 border_width, vec4 color[4]) {
 	// bottom
 	q->vertices[0].position = (vec3) { position.x, position.y, 0.0f };
 	q->vertices[1].position = (vec3) { position.x + width, position.y, 0.0f };
-	q->vertices[2].position = (vec3) { position.x + border_width, position.y + border_width, 0.0f };
-	q->vertices[3].position = (vec3) { position.x + width - border_width, position.y + border_width, 0.0f };
+	q->vertices[2].position = (vec3) { position.x + border_width[3], position.y + border_width[3], 0.0f };
+	q->vertices[3].position = (vec3) { position.x + width - border_width[3], position.y + border_width[3], 0.0f };
 	renderer_imm_quad(q);
 
 	q->vertices[0].color = color[3];
@@ -262,8 +262,8 @@ renderer_imm_border(Quad_2D* q, r32 border_width, vec4 color[4]) {
 	q->vertices[3].color = color[3];
 
 	// top
-	q->vertices[0].position = (vec3) { position.x + border_width, position.y + height - border_width, 0.0f };
-	q->vertices[1].position = (vec3) { position.x + width - border_width, position.y + height - border_width, 0.0f };
+	q->vertices[0].position = (vec3) { position.x + border_width[2], position.y + height - border_width[2], 0.0f };
+	q->vertices[1].position = (vec3) { position.x + width - border_width[2], position.y + height - border_width[2], 0.0f };
 	q->vertices[2].position = (vec3) { position.x, position.y + height, 0.0f };
 	q->vertices[3].position = (vec3) { position.x + width, position.y + height, 0.0f };
 	renderer_imm_quad(q);
@@ -304,7 +304,7 @@ renderer_imm_debug_box(r32 x, r32 y, r32 width, r32 height, vec4 color) {
 	bcolor[1] = color;
 	bcolor[2] = color;
 	bcolor[3] = color;
-	renderer_imm_border(&q, 1, bcolor);
+	renderer_imm_border(&q, (r32[4]){1.0f, 1.0f, 1.0f, 1.0f}, bcolor);
 }
 
 void

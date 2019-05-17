@@ -43,11 +43,14 @@ enum {
 };
 
 typedef struct HoGui_Window_t {
+    const char* name;
+    
     u32  flags, temp_flags;
     r32  width, height;
     vec2 position, absolute_position;
     vec4 bg_color, hover_color;
-    const char* name;
+    r32  border_size[4];  // left, right, top, bottom
+    vec4 border_color[4]; // left, right, top, bottom
 
     Scope* scope_at;
     Scope  scope_defined;

@@ -188,6 +188,7 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
     vec2 start_pos = w->position;
     // Update current window position
     vec2 position = gm_vec2_add(w->position, diff);
+
     if(position.x < 0.0f && w->flags & HOGUI_WINDOW_FLAG_CONSTRAIN_X)
         position.x = 0.0f;
     if(position.y < 0.0f && w->flags & HOGUI_WINDOW_FLAG_CONSTRAIN_Y)
@@ -219,7 +220,6 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
             position.x = start_pos.x;
         }
     }
-    
     // When the mouse goes outside of the scope, wait until it is again
     // in its locked offset to move the window again 
     if(((HoGui_Window*)w->scope_at->defining_window)->flags & HOGUI_WINDOW_FLAG_TOPDOWN) {
@@ -248,7 +248,7 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
     }
 
     w->position = position;
-    return gm_vec2_subtract(start_pos, position);
+    return gm_vec2_subtract(position, start_pos);
 }
 
 static int
@@ -264,7 +264,7 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
         //w->position = gm_vec2_add(w->position, mouse_diff);
         vec2 diff = hogui_update_position(w, mouse_diff);
         position = gm_vec2_add(position, diff);
-        
+
         // Reset mouse lock position to the current, this is because
         // we already updated the position of the window, if we dont do
         // this, the window will move again.
@@ -279,7 +279,14 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
     // Render current window
     Quad_2D q = quad_new_clipped(position, w->width, w->height, color, current_scope->clipping);
     Quad_2D* q_rendered = renderer_imm_quad(&q);
+
     renderer_imm_debug_text(font_info, position, "Hello");
+
+    // Render border
+    if(w->border_size[0] + w->border_size[1] + w->border_size[2] + w->border_size[3] > 0.0f) {
+        vec4 black = (vec4){0.0f, 0.0f, 0.0f, 1.0f};
+        renderer_imm_border(&q, w->border_size, w->border_color);
+    }
 
     // Merge the clipping downwards (meaning, all child windows will clip within the bounds of this one).
     Clipping_Rect c = {0.0f, 0.0f, FLT_MAX, FLT_MAX};
@@ -366,7 +373,6 @@ hogui_update() {
         if(mouse_locked && !global_locked) {
             global_locked = global_hovered;
             global_locked_diff = gm_vec2_subtract(mouse_current_pos, global_locked->absolute_position);
-            printf("lock difference from position: %.0f %.0f\n", global_locked_diff.x, global_locked_diff.y);
         }
         global_hovered = 0;
     }
@@ -404,7 +410,9 @@ hogui_test() {
 		.width = 520.0f,
 		.height = 768.0f,
 		.position = (vec2){100.0f, 100.0f},
-		.bg_color = (vec4){0.0f, 0.0f, 0.0f, 1.0f},
+		.bg_color = (vec4){0.5f, 0.5f, 0.56f, 1.0f},
+        .border_size = {2.0f, 2.0f, 2.0f, 2.0f},
+        .border_color = {(vec4){0, 0, 0, 1}, (vec4){0, 0, 0, 1}, (vec4){0, 0, 0, 1}, (vec4){0, 0, 0, 1}},
 	};
 	HoGui_Window* m = hogui_new_window(&w, 0);
 
@@ -415,8 +423,7 @@ hogui_test() {
 			.flags = 
                 HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
                 HOGUI_WINDOW_FLAG_CONSTRAIN_X|
-                HOGUI_WINDOW_FLAG_CONSTRAIN_Y|
-                HOGUI_WINDOW_FLAG_LOCK_MOVE_Y,
+                HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
 			.position = (vec2){20.0f, 10.0f},
 			.width = 300.0f,
 			.height = 300.0f,

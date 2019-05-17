@@ -70,10 +70,8 @@ int main() {
 			} else if(e.type == EVENT_MOUSE_INPUT) {
 				switch(e.mouse.type) {
 					case MOUSE_BUTTON_PRESS: {
-						printf("Clicked at %f %f\n", e.mouse.x, e.mouse.y);
 					}break;
 					case MOUSE_BUTTON_RELEASE: {
-						printf("Released at %f %f\n", e.mouse.x, e.mouse.y);
 					}break;
 					case MOUSE_POSITION: {
 						int x = 0;
