@@ -273,35 +273,65 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
 }
 
 static vec2
-hogui_resize(HoGui_Window* w, vec2 mouse_diff) {
+hogui_resize(HoGui_Window* w, vec2 mouse_diff, r32 min_width, r32 min_height) {
     vec2 p = {0};
 
     vec2 diff = {0};
 
+    //printf("%f\n", mouse_lock_pos.y);
+
     if(w->locking_border_flags & HOGUI_LOCKING_BORDER_LEFT) {
+        // Limit the resizing to min_width
+        if(w->width - mouse_diff.x - min_width < 0.0f) {
+            mouse_diff.x += (w->width - mouse_diff.x - min_width);
+        }
+        // Apply change to window
         w->width -= mouse_diff.x;
         w->position.x += mouse_diff.x;
         p.x += mouse_diff.x;
     } 
     if(w->locking_border_flags & HOGUI_LOCKING_BORDER_RIGHT) {
+        // Limit the resizing to min_width
+        if(w->width + mouse_diff.x - min_width < 0.0f) {
+            mouse_diff.x -= (w->width + mouse_diff.x - min_width);
+        }
+        // Apply change to window
         w->width += mouse_diff.x;
     }
 
     if(w->flags & HOGUI_WINDOW_FLAG_TOPDOWN) {
         if(w->locking_border_flags & HOGUI_LOCKING_BORDER_TOP) {
+            // Limit the resizing to min_height
+            if(w->height + mouse_diff.y - min_height < 0.0f) {
+                mouse_diff.y += ((w->height - mouse_diff.y - min_height));
+            }
+            // Apply change to window
             w->height += mouse_diff.y;
         }
         if(w->locking_border_flags & HOGUI_LOCKING_BORDER_BOTTOM) {
+            // Limit the resizing to the size of the window
+            if(w->height - mouse_diff.y - min_height < 0.0f) {
+                mouse_diff.y -= ((w->height + mouse_diff.y - min_height));
+            }
+            // Apply change to window
             w->height -= mouse_diff.y;
             w->position.y += mouse_diff.y;
             p.y += mouse_diff.y;
         }
     } else {
         if(w->locking_border_flags & HOGUI_LOCKING_BORDER_TOP) {
+            if(w->height - mouse_diff.y - min_height < 0.0f) {
+                mouse_diff.y += (w->height - mouse_diff.y - min_height);
+            }
+            // Apply change to window
             w->height -= mouse_diff.y;
             w->position.y += mouse_diff.y;
         }
         if(w->locking_border_flags & HOGUI_LOCKING_BORDER_BOTTOM) {
+            if(w->height - mouse_diff.y - min_height < 0.0f) {
+                mouse_diff.y -= (w->height - mouse_diff.y) - min_height;
+            }
+            // Apply change to window
             w->height += mouse_diff.y;
             p.y -= mouse_diff.y;
         }
@@ -325,7 +355,7 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
         //vec2 diff = hogui_update_position(w, mouse_diff);
         vec2 diff = {0};
         if(w->locking_border_flags) {
-            diff = hogui_resize(w, mouse_diff);
+            diff = hogui_resize(w, mouse_diff, 10.0f, 20.0f);
         } else {
             diff = hogui_update_position(w, mouse_diff);
         }
@@ -342,12 +372,19 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
         color = gm_vec4_add(w->bg_color, (vec4){-0.2f, -0.2f, -0.2f, 0.0f});
     }
 
+    // Merge the clipping downwards (meaning, all child windows will clip within the bounds of this one).
+    Clipping_Rect c = {0.0f, 0.0f, FLT_MAX, FLT_MAX};
+    if(w->flags & HOGUI_WINDOW_FLAG_CLIP_CHILDREN) {
+        c = clipping_rect_new(position.x, position.y, w->width, w->height);
+    }
+    w->scope_defined.clipping = clipping_rect_merge(current_scope->clipping, c);
+
     // Render current window
-    Quad_2D q = quad_new_clipped(position, w->width, w->height, color, current_scope->clipping);
+    Quad_2D q = quad_new_clipped(position, w->width, w->height, color, w->scope_defined.clipping);
     Quad_2D* q_rendered = renderer_imm_quad(&q);
 
     //renderer_imm_debug_text(font_info, position, "Hello");
-    renderer_imm_debug_text_clipped(font_info, position, current_scope->clipping, "Hello");
+    renderer_imm_debug_text_clipped(font_info, position, w->scope_defined.clipping, "Hello");
 
     // Render border
     if(w->border_size[0] + w->border_size[1] + w->border_size[2] + w->border_size[3] > 0.0f) {
@@ -373,13 +410,6 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
         }
         renderer_imm_border(&q, w->border_size, border_color);
     }
-
-    // Merge the clipping downwards (meaning, all child windows will clip within the bounds of this one).
-    Clipping_Rect c = {0.0f, 0.0f, FLT_MAX, FLT_MAX};
-    if(w->flags & HOGUI_WINDOW_FLAG_CLIP_CHILDREN) {
-        c = clipping_rect_new(position.x, position.y, w->width, w->height);
-    }
-    w->scope_defined.clipping = clipping_rect_merge(current_scope->clipping, c);
 
     // Render children
     if(w->children) {
@@ -459,6 +489,11 @@ hogui_update() {
         HoGui_Window* w = global_window.children[i];
         hogui_update_window(w);
     }
+    
+    if(mouse_locked && !global_locked && !global_hovered) {
+        global_locked = &global_window;
+    }
+
     if(global_hovered) {
         global_hovered->temp_flags |= HOGUI_WINDOW_TEMP_FLAG_HOVERED;
         if(global_hovered->border_flags) {
@@ -487,7 +522,8 @@ hogui_input(Event* e) {
                 input_get_mouse_pos(&mouse_lock_pos.x, &mouse_lock_pos.y);
             } else if(e->mouse.type == MOUSE_BUTTON_RELEASE) {
                 mouse_locked = false;
-                global_locked->locking_border_flags = 0;
+                if(global_locked)
+                    global_locked->locking_border_flags = 0;
                 global_locked = 0;
             } else if(e->mouse.type == MOUSE_POSITION) {
                 input_get_mouse_pos(&mouse_current_pos.x, &mouse_current_pos.y);
