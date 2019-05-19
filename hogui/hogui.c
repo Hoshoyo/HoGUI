@@ -272,18 +272,63 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
     return gm_vec2_subtract(position, start_pos);
 }
 
+static vec2
+hogui_resize(HoGui_Window* w, vec2 mouse_diff) {
+    vec2 p = {0};
+
+    vec2 diff = {0};
+
+    if(w->locking_border_flags & HOGUI_LOCKING_BORDER_LEFT) {
+        w->width -= mouse_diff.x;
+        w->position.x += mouse_diff.x;
+        p.x += mouse_diff.x;
+    } 
+    if(w->locking_border_flags & HOGUI_LOCKING_BORDER_RIGHT) {
+        w->width += mouse_diff.x;
+    }
+
+    if(w->flags & HOGUI_WINDOW_FLAG_TOPDOWN) {
+        if(w->locking_border_flags & HOGUI_LOCKING_BORDER_TOP) {
+            w->height += mouse_diff.y;
+        }
+        if(w->locking_border_flags & HOGUI_LOCKING_BORDER_BOTTOM) {
+            w->height -= mouse_diff.y;
+            w->position.y += mouse_diff.y;
+            p.y += mouse_diff.y;
+        }
+    } else {
+        if(w->locking_border_flags & HOGUI_LOCKING_BORDER_TOP) {
+            w->height -= mouse_diff.y;
+            w->position.y += mouse_diff.y;
+        }
+        if(w->locking_border_flags & HOGUI_LOCKING_BORDER_BOTTOM) {
+            w->height += mouse_diff.y;
+            p.y -= mouse_diff.y;
+        }
+
+    }
+    return p;
+}
+
 static int
 hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
     Scope* current_scope = w->scope_at;
     vec2 position = w->absolute_position;
+
+    bool resizing = (w->locking_border_flags && w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED);
 
     // Change window position according to movement of the mouse when locked
     if(w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED) {
         vec2 mouse_diff = hogui_window_mouse_locked_diff(w);
 
         // Update current window position
-        //w->position = gm_vec2_add(w->position, mouse_diff);
-        vec2 diff = hogui_update_position(w, mouse_diff);
+        //vec2 diff = hogui_update_position(w, mouse_diff);
+        vec2 diff = {0};
+        if(w->locking_border_flags) {
+            diff = hogui_resize(w, mouse_diff);
+        } else {
+            diff = hogui_update_position(w, mouse_diff);
+        }
         position = gm_vec2_add(position, diff);
 
         // Reset mouse lock position to the current, this is because
@@ -301,7 +346,8 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
     Quad_2D q = quad_new_clipped(position, w->width, w->height, color, current_scope->clipping);
     Quad_2D* q_rendered = renderer_imm_quad(&q);
 
-    renderer_imm_debug_text(font_info, position, "Hello");
+    //renderer_imm_debug_text(font_info, position, "Hello");
+    renderer_imm_debug_text_clipped(font_info, position, current_scope->clipping, "Hello");
 
     // Render border
     if(w->border_size[0] + w->border_size[1] + w->border_size[2] + w->border_size[3] > 0.0f) {
@@ -310,18 +356,18 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
         border_color[1] = w->border_color[1];
         border_color[2] = w->border_color[2];
         border_color[3] = w->border_color[3];
-        if(w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_HOVERED_BORDER) {
+        if((w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_HOVERED_BORDER) || resizing) {
             vec4 red = (vec4) {1.0f, 0.0f, 0.0f, 1.0f};
-            if(w->border_flags & HOGUI_SELECTING_BORDER_LEFT) {
+            if(w->border_flags & HOGUI_SELECTING_BORDER_LEFT || w->locking_border_flags & HOGUI_LOCKING_BORDER_LEFT) {
                 border_color[0] = red;
             }
-            if(w->border_flags & HOGUI_SELECTING_BORDER_RIGHT) {
+            if(w->border_flags & HOGUI_SELECTING_BORDER_RIGHT || w->locking_border_flags & HOGUI_LOCKING_BORDER_RIGHT) {
                 border_color[1] = red;
             }
-            if(w->border_flags & HOGUI_SELECTING_BORDER_TOP) {
+            if(w->border_flags & HOGUI_SELECTING_BORDER_TOP || w->locking_border_flags & HOGUI_LOCKING_BORDER_TOP) {
                 border_color[3] = red;
             }
-            if(w->border_flags & HOGUI_SELECTING_BORDER_BOTTOM) {
+            if(w->border_flags & HOGUI_SELECTING_BORDER_BOTTOM || w->locking_border_flags & HOGUI_LOCKING_BORDER_BOTTOM) {
                 border_color[2] = red;
             }
         }
@@ -384,10 +430,10 @@ hogui_update_window(HoGui_Window* w) {
         if(hogui_window_is_hovered(w)) {
             global_hovered = w;
         }
-        u32 flags = 0;
-        if(hogui_point_inside_border(mouse_current_pos, w, 3.0f, &flags)) {
-            w->border_flags = flags;
-        }
+    }
+    u32 flags = 0;
+    if(hogui_point_inside_border(mouse_current_pos, w, 3.0f, &flags)) {
+        w->border_flags = flags;
     }
 
     w->absolute_position = position;
@@ -421,11 +467,14 @@ hogui_update() {
         if(mouse_locked && !global_locked) {
             global_locked = global_hovered;
             global_locked_diff = gm_vec2_subtract(mouse_current_pos, global_locked->absolute_position);
+            if(global_locked->temp_flags & HOGUI_WINDOW_TEMP_FLAG_HOVERED_BORDER) {
+                global_locked->locking_border_flags |= global_locked->border_flags;
+            }
         }
         global_hovered = 0;
     }
     if(global_locked) {
-        global_locked->temp_flags = HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED;
+        global_locked->temp_flags |= HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED;
     }
 }
 
@@ -438,6 +487,7 @@ hogui_input(Event* e) {
                 input_get_mouse_pos(&mouse_lock_pos.x, &mouse_lock_pos.y);
             } else if(e->mouse.type == MOUSE_BUTTON_RELEASE) {
                 mouse_locked = false;
+                global_locked->locking_border_flags = 0;
                 global_locked = 0;
             } else if(e->mouse.type == MOUSE_POSITION) {
                 input_get_mouse_pos(&mouse_current_pos.x, &mouse_current_pos.y);

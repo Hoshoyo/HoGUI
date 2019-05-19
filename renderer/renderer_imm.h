@@ -30,6 +30,7 @@ void renderer_immediate_global_position(vec3 p);
 void renderer_imm_debug_box(r32 x, r32 y, r32 width, r32 height, vec4 color);
 void renderer_imm_debug_line(vec2 start, vec2 end, vec4 color);
 int  renderer_imm_debug_text(Font_Info* font_info, vec2 position, char* fmt, ...);
+int  renderer_imm_debug_text_clipped(Font_Info* font_info, vec2 position, Clipping_Rect clipping, char* fmt, ...);
 
 // Quad_2D functions
 Quad_2D quad_new(vec2 position, r32 width, r32 height, vec4 color);

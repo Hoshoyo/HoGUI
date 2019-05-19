@@ -48,12 +48,17 @@ enum {
     HOGUI_SELECTING_BORDER_RIGHT  = FLAG(1),
     HOGUI_SELECTING_BORDER_TOP    = FLAG(2),
     HOGUI_SELECTING_BORDER_BOTTOM = FLAG(3),
+
+    HOGUI_LOCKING_BORDER_LEFT    = FLAG(0),
+    HOGUI_LOCKING_BORDER_RIGHT   = FLAG(1),
+    HOGUI_LOCKING_BORDER_TOP     = FLAG(2),
+    HOGUI_LOCKING_BORDER_BOTTOM  = FLAG(3),
 };
 
 typedef struct HoGui_Window_t {
     const char* name;
     
-    u32  flags, temp_flags, border_flags;
+    u32  flags, temp_flags, border_flags, locking_border_flags;
     r32  width, height;
     vec2 position, absolute_position;
     vec4 bg_color, hover_color;
