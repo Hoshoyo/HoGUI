@@ -192,13 +192,13 @@ hogui_window_is_hovered(HoGui_Window* w) {
 static vec2
 hogui_window_mouse_locked_diff(HoGui_Window* w) {
     vec2 mouse_diff;
-    if(w->flags & HOGUI_WINDOW_FLAG_TOPDOWN) {
-        mouse_diff = 
-            gm_vec2_subtract(mouse_current_pos, mouse_lock_pos);
-    } else {
+    if(((HoGui_Window*)w->scope_at->defining_window)->flags & HOGUI_WINDOW_FLAG_TOPDOWN) {
         mouse_diff = 
             (vec2) {mouse_current_pos.x - mouse_lock_pos.x, -(mouse_current_pos.y - mouse_lock_pos.y)};
             //gm_vec2_subtract(mouse_current_pos, mouse_lock_pos);
+    } else {
+        mouse_diff = 
+            gm_vec2_subtract(mouse_current_pos, mouse_lock_pos);
     }
     
     return mouse_diff;
@@ -209,6 +209,8 @@ static vec2
 hogui_update_position(HoGui_Window* w, vec2 diff) {
     r32 scope_width = ((HoGui_Window*)w->scope_at->defining_window)->width;
     r32 scope_height = ((HoGui_Window*)w->scope_at->defining_window)->height;
+
+    bool topdown_scope = (((HoGui_Window*)w->scope_at->defining_window)->flags & HOGUI_WINDOW_FLAG_TOPDOWN);
 
     vec2 start_pos = w->position;
     // Update current window position
@@ -247,7 +249,7 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
     }
     // When the mouse goes outside of the scope, wait until it is again
     // in its locked offset to move the window again 
-    if(((HoGui_Window*)w->scope_at->defining_window)->flags & HOGUI_WINDOW_FLAG_TOPDOWN) {
+    if(topdown_scope) {
         if(start_pos.y < position.y && offset_y < 0.0f) {
             // moving up
             position.y = start_pos.y;
@@ -550,6 +552,48 @@ hogui_test() {
     HoGui_Window w = {
         .name = "Main",
 		.flags = 
+            //HOGUI_WINDOW_FLAG_TOPDOWN|
+            HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
+            HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
+		.width = 480.0f,
+		.height = 320.0f,
+		.position = (vec2){100.0f, 100.0f},
+		.bg_color = (vec4){0.5f, 0.5f, 0.56f, 1.0f},
+        .border_size = {1.0f, 1.0f, 1.0f, 1.0f},
+        .border_color = {(vec4){0, 0, 0, 1}, (vec4){0, 0, 0, 1}, (vec4){0, 0, 0, 1}, (vec4){0, 0, 0, 1}},
+	};
+    HoGui_Window* m = hogui_new_window(&w, 0);
+
+    HoGui_Window scroll_x = {
+        .name = "ScrollX",
+        .flags = 
+            //HOGUI_WINDOW_FLAG_TOPDOWN|
+            HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
+            HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
+            //HOGUI_WINDOW_FLAG_LOCK_MOVE_Y,
+        .position = (vec2){1.0f, 1.0f},
+        .width = 100.0f,
+        .height = 100.0f,
+        .bg_color = (vec4){0.3f, 0.3f, 0.3f, 1.0f},
+    };
+    HoGui_Window* mm = hogui_new_window(&scroll_x, m);
+
+    //HoGui_Window gchild = {
+    //    .name = "gchild",
+    //    .flags = 
+    //        HOGUI_WINDOW_FLAG_TOPDOWN|
+    //        HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
+    //        HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
+    //    .position = (vec2){1.0f, 1.0f},
+    //    .width = 20.0f,
+    //    .height = 20.0f,
+    //    .bg_color = (vec4){1.0f, 0.3f, 0.3f, 1.0f},
+    //};
+    //HoGui_Window* mmm = hogui_new_window(&gchild, mm);
+#if 0
+    HoGui_Window w = {
+        .name = "Main",
+		.flags = 
             HOGUI_WINDOW_FLAG_TOPDOWN|
             HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
             HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y|
@@ -594,4 +638,5 @@ hogui_test() {
 		};
         hogui_new_window(&www, mm);
 	}
+#endif
 }
