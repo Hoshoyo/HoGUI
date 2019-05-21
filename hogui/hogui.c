@@ -134,12 +134,17 @@ hogui_window_position(HoGui_Window* w) {
 }
 
 static int
-hogui_reset_scope(Scope* scope) {
+hogui_reset_scope(Scope* scope, bool render_pass) {
     scope->clipping = (vec4){0.0f, 0.0f, FLT_MAX, FLT_MAX};
     scope->max_x = 0.0f;
     scope->max_y = 0.0f;
     scope->min_x = 0.0f;
     scope->min_y = 0.0f;
+
+    if(render_pass) {
+        scope->max_width = 0.0f;
+        scope->max_height = 0.0f;
+    }
 }
 
 vec2
@@ -151,7 +156,6 @@ hogui_scope_adjustment(HoGui_Window* w) {
     } else {
         return (vec2) {0.0f, scope->max_y};
     }
-
 }
 
 bool
@@ -353,7 +357,7 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
         // Update current window position
         vec2 diff = {0};
         if(resizing) {
-            diff = hogui_resize(w, mouse_diff, 10.0f, 20.0f);
+            diff = hogui_resize(w, mouse_diff, w->scope_defined.max_width, w->scope_defined.max_height);
         } else {
             diff = hogui_update_position(w, mouse_diff);
         }
@@ -422,7 +426,8 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
     w->border_flags = 0;
 
     // Reset Scope info
-    hogui_reset_scope(&w->scope_defined);
+    hogui_reset_scope(&w->scope_defined, true);
+    
 }
 
 // External function to render all windows in the global scope
@@ -463,6 +468,9 @@ hogui_update_window(HoGui_Window* w) {
     u32 flags = 0;
     if(hogui_point_inside_border(mouse_current_pos, w, 3.0f, &flags)) {
         w->border_flags = flags;
+        if(!global_hovered) {
+            global_hovered = w;
+        }
     }
 
     w->absolute_position = position;
@@ -471,6 +479,11 @@ hogui_update_window(HoGui_Window* w) {
     current_scope->max_x += (w->position.x + w->width);
     current_scope->max_y += (w->position.y + w->height);
 
+    if(current_scope->max_x > current_scope->max_width)
+        current_scope->max_width = current_scope->max_x;
+    if(current_scope->max_y > current_scope->max_height)
+        current_scope->max_height = current_scope->max_y;
+
     // Update children
     if(w->children) {
         for(u64 i = 0; i < array_length(w->children); ++i) {
@@ -478,12 +491,12 @@ hogui_update_window(HoGui_Window* w) {
         }
     }
     // Reset scope
-    hogui_reset_scope(&w->scope_defined);
+    hogui_reset_scope(&w->scope_defined, false);
 }
 
 int
 hogui_update() {
-    hogui_reset_scope(&global_window.scope_defined);
+    hogui_reset_scope(&global_window.scope_defined, false);
     for(u64 i = 0; i < array_length(global_window.children); ++i) {
         HoGui_Window* w = global_window.children[i];
         hogui_update_window(w);

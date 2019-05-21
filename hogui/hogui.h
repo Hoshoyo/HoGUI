@@ -21,7 +21,9 @@ typedef struct Scope_t{
 
     Clipping_Rect clipping;
 
-    // Info
+    r32 max_width, max_height;
+
+    // Info temporary
     r32 max_x, min_x;
     r32 max_y, min_y;
 } Scope;
