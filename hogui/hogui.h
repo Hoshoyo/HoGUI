@@ -17,7 +17,7 @@ typedef struct Scope_t{
     s32 element_count;
 
     struct Scope_t* parent;
-    struct HoGui_Window* defining_window;
+    struct HoGui_Window_t* defining_window;
 
     Clipping_Rect clipping;
 
@@ -39,6 +39,8 @@ enum {
     HOGUI_WINDOW_FLAG_LOCK_MOVE_Y      = FLAG(7),
     HOGUI_WINDOW_FLAG_RESIZEABLE_H     = FLAG(8),
     HOGUI_WINDOW_FLAG_RESIZEABLE_V     = FLAG(9),
+    HOGUI_WINDOW_FLAG_IGNORE_SCOPE_X_POSITIONING = FLAG(10),
+    HOGUI_WINDOW_FLAG_IGNORE_SCOPE_Y_POSITIONING = FLAG(11),
 };
 
 enum {

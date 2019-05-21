@@ -30,7 +30,7 @@ hogui_init() {
     global_window.height = (r32)height;
 
     // global_scope
-    global_window.scope_defined.defining_window = (struct HoGui_Window*)&global_window;
+    global_window.scope_defined.defining_window = &global_window;
     global_window.scope_defined.id = global_id++;
     global_window.scope_defined.parent = 0;
 
@@ -50,7 +50,7 @@ hogui_delete_window(HoGui_Window* w) {
     }
 
     // delete parent reference
-    HoGui_Window* parent = (HoGui_Window*)w->scope_at->defining_window;
+    HoGui_Window* parent = w->scope_at->defining_window;
     for(u64 i = 0; i < array_length(parent->children); ++i) {
         if(parent->children[i] == w) {
             array_remove_ordered(parent->children, i);
@@ -84,7 +84,7 @@ hogui_new_window(HoGui_Window* in_info, HoGui_Window* parent) {
         w->scope_at->element_count++;
         w->scope_defined.id = global_id++;
         w->scope_defined.element_count = 0;
-        w->scope_defined.defining_window = (struct HoGui_Window*)w;
+        w->scope_defined.defining_window = w;
         w->scope_defined.parent = &parent->scope_defined;
 
         if(!parent->children) {
@@ -98,7 +98,7 @@ hogui_new_window(HoGui_Window* in_info, HoGui_Window* parent) {
 
 bool
 hogui_scope_flag_is_set(Scope* scope, u32 flag) {
-    return (((HoGui_Window*)scope->defining_window)->flags & flag);
+    return (scope->defining_window->flags & flag);
 }
 
 static bool
@@ -117,13 +117,13 @@ hogui_window_position(HoGui_Window* w) {
     if(w->flags & HOGUI_WINDOW_FLAG_GLOBAL) {
         return w->position;
     }
-    HoGui_Window* parent = (HoGui_Window*)w->scope_at->defining_window;
+    HoGui_Window* parent = w->scope_at->defining_window;
     if(parent) {
         vec2 result = {0};
         vec2 offset_pos = w->position;
         if(hogui_scope_flag_is_set(w->scope_at, HOGUI_WINDOW_FLAG_TOPDOWN)) {
             // height of the parent
-            result.y += ((HoGui_Window*)w->scope_at->defining_window)->height;
+            result.y += w->scope_at->defining_window->height;
             result.y -= w->height;
             offset_pos.y = -offset_pos.y;
         }
@@ -149,6 +149,10 @@ hogui_reset_scope(Scope* scope, bool render_pass) {
 
 vec2
 hogui_scope_adjustment(HoGui_Window* w) {
+    if(w->flags & HOGUI_WINDOW_FLAG_IGNORE_SCOPE_Y_POSITIONING) {
+        return (vec2){0.0f, 0.0f};
+    }
+
     Scope* scope = w->scope_at;
 
     if(hogui_scope_flag_is_set(scope, HOGUI_WINDOW_FLAG_TOPDOWN)) {
@@ -192,7 +196,7 @@ hogui_window_is_hovered(HoGui_Window* w) {
 static vec2
 hogui_window_mouse_locked_diff(HoGui_Window* w) {
     vec2 mouse_diff;
-    if(((HoGui_Window*)w->scope_at->defining_window)->flags & HOGUI_WINDOW_FLAG_TOPDOWN) {
+    if(w->scope_at->defining_window->flags & HOGUI_WINDOW_FLAG_TOPDOWN) {
         mouse_diff = 
             (vec2) {mouse_current_pos.x - mouse_lock_pos.x, -(mouse_current_pos.y - mouse_lock_pos.y)};
             //gm_vec2_subtract(mouse_current_pos, mouse_lock_pos);
@@ -207,10 +211,10 @@ hogui_window_mouse_locked_diff(HoGui_Window* w) {
 // Return the difference from the current position
 static vec2
 hogui_update_position(HoGui_Window* w, vec2 diff) {
-    r32 scope_width = ((HoGui_Window*)w->scope_at->defining_window)->width;
-    r32 scope_height = ((HoGui_Window*)w->scope_at->defining_window)->height;
+    r32 scope_width = w->scope_at->defining_window->width;
+    r32 scope_height = w->scope_at->defining_window->height;
 
-    bool topdown_scope = (((HoGui_Window*)w->scope_at->defining_window)->flags & HOGUI_WINDOW_FLAG_TOPDOWN);
+    bool topdown_scope = (w->scope_at->defining_window->flags & HOGUI_WINDOW_FLAG_TOPDOWN);
 
     vec2 start_pos = w->position;
     // Update current window position
@@ -552,7 +556,7 @@ hogui_test() {
     HoGui_Window w = {
         .name = "Main",
 		.flags = 
-            //HOGUI_WINDOW_FLAG_TOPDOWN|
+            HOGUI_WINDOW_FLAG_TOPDOWN|
             HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
             HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
 		.width = 480.0f,
@@ -567,29 +571,41 @@ hogui_test() {
     HoGui_Window scroll_x = {
         .name = "ScrollX",
         .flags = 
-            //HOGUI_WINDOW_FLAG_TOPDOWN|
             HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
-            HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
-            //HOGUI_WINDOW_FLAG_LOCK_MOVE_Y,
-        .position = (vec2){1.0f, 1.0f},
+            HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y|
+            HOGUI_WINDOW_FLAG_LOCK_MOVE_Y,
+        .position = (vec2){0.0f, 0.0f},
         .width = 100.0f,
-        .height = 100.0f,
+        .height = 20.0f,
         .bg_color = (vec4){0.3f, 0.3f, 0.3f, 1.0f},
     };
     HoGui_Window* mm = hogui_new_window(&scroll_x, m);
 
-    //HoGui_Window gchild = {
-    //    .name = "gchild",
+    HoGui_Window scroll_y = {
+        .name = "ScrollY",
+        .flags = 
+            HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
+            HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y|
+            HOGUI_WINDOW_FLAG_LOCK_MOVE_X,
+        .position = (vec2){460.0f, 0.0f},
+        .width = 20.0f,
+        .height = 100.0f,
+        .bg_color = (vec4){0.3f, 0.3f, 0.3f, 1.0f},
+    };
+    HoGui_Window* my = hogui_new_window(&scroll_y, m);
+
+    //HoGui_Window area = {
+    //    .name = "Area",
     //    .flags = 
-    //        HOGUI_WINDOW_FLAG_TOPDOWN|
     //        HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
-    //        HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
-    //    .position = (vec2){1.0f, 1.0f},
-    //    .width = 20.0f,
-    //    .height = 20.0f,
-    //    .bg_color = (vec4){1.0f, 0.3f, 0.3f, 1.0f},
+    //        HOGUI_WINDOW_FLAG_LOCK_MOVE_X|HOGUI_WINDOW_FLAG_LOCK_MOVE_Y,
+    //    .position = (vec2){1.0f, 0.0f},
+    //    .width = 460.0f,
+    //    .height = 300.0f,
+    //    .bg_color = (vec4){0.5f, 0.5f, 0.5f, 0.8f},
     //};
-    //HoGui_Window* mmm = hogui_new_window(&gchild, mm);
+    //HoGui_Window* aw = hogui_new_window(&area, m);
+
 #if 0
     HoGui_Window w = {
         .name = "Main",
