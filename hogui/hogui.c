@@ -275,15 +275,12 @@ hogui_update_position(HoGui_Window* w, vec2 diff) {
 static vec2
 hogui_resize(HoGui_Window* w, vec2 mouse_diff, r32 min_width, r32 min_height) {
     vec2 p = {0};
-
     vec2 diff = {0};
-
-    //printf("%f\n", mouse_lock_pos.y);
 
     if(w->locking_border_flags & HOGUI_LOCKING_BORDER_LEFT) {
         // Limit the resizing to min_width
         if(w->width - mouse_diff.x - min_width < 0.0f) {
-            mouse_diff.x += (w->width - mouse_diff.x - min_width);
+            mouse_diff.x = -min_width + w->width;
         }
         // Apply change to window
         w->width -= mouse_diff.x;
@@ -293,7 +290,7 @@ hogui_resize(HoGui_Window* w, vec2 mouse_diff, r32 min_width, r32 min_height) {
     if(w->locking_border_flags & HOGUI_LOCKING_BORDER_RIGHT) {
         // Limit the resizing to min_width
         if(w->width + mouse_diff.x - min_width < 0.0f) {
-            mouse_diff.x -= (w->width + mouse_diff.x - min_width);
+            mouse_diff.x = min_width - w->width;
         }
         // Apply change to window
         w->width += mouse_diff.x;
@@ -303,7 +300,7 @@ hogui_resize(HoGui_Window* w, vec2 mouse_diff, r32 min_width, r32 min_height) {
         if(w->locking_border_flags & HOGUI_LOCKING_BORDER_TOP) {
             // Limit the resizing to min_height
             if(w->height + mouse_diff.y - min_height < 0.0f) {
-                mouse_diff.y += ((w->height - mouse_diff.y - min_height));
+                mouse_diff.y = min_height - w->height;
             }
             // Apply change to window
             w->height += mouse_diff.y;
@@ -311,7 +308,7 @@ hogui_resize(HoGui_Window* w, vec2 mouse_diff, r32 min_width, r32 min_height) {
         if(w->locking_border_flags & HOGUI_LOCKING_BORDER_BOTTOM) {
             // Limit the resizing to the size of the window
             if(w->height - mouse_diff.y - min_height < 0.0f) {
-                mouse_diff.y -= ((w->height + mouse_diff.y - min_height));
+                mouse_diff.y = -min_height + w->height;
             }
             // Apply change to window
             w->height -= mouse_diff.y;
@@ -321,15 +318,15 @@ hogui_resize(HoGui_Window* w, vec2 mouse_diff, r32 min_width, r32 min_height) {
     } else {
         if(w->locking_border_flags & HOGUI_LOCKING_BORDER_TOP) {
             if(w->height - mouse_diff.y - min_height < 0.0f) {
-                mouse_diff.y += (w->height - mouse_diff.y - min_height);
+                mouse_diff.y = -min_height + w->height;
             }
             // Apply change to window
             w->height -= mouse_diff.y;
             w->position.y += mouse_diff.y;
         }
         if(w->locking_border_flags & HOGUI_LOCKING_BORDER_BOTTOM) {
-            if(w->height - mouse_diff.y - min_height < 0.0f) {
-                mouse_diff.y -= (w->height - mouse_diff.y) - min_height;
+            if(w->height + mouse_diff.y - min_height < 0.0f) {
+                mouse_diff.y = min_height - w->height;
             }
             // Apply change to window
             w->height += mouse_diff.y;
@@ -345,16 +342,17 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
     Scope* current_scope = w->scope_at;
     vec2 position = w->absolute_position;
 
-    bool resizing = (w->locking_border_flags && w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED);
+    bool resizing = (w->locking_border_flags && w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED) &&
+        (((w->locking_border_flags & HOGUI_LOCKING_BORDER_LEFT || w->locking_border_flags & HOGUI_LOCKING_BORDER_RIGHT) && w->flags & HOGUI_WINDOW_FLAG_RESIZEABLE_H) ||
+        ((w->locking_border_flags & HOGUI_LOCKING_BORDER_BOTTOM || w->locking_border_flags & HOGUI_LOCKING_BORDER_TOP) && w->flags & HOGUI_WINDOW_FLAG_RESIZEABLE_V));
 
     // Change window position according to movement of the mouse when locked
     if(w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED) {
         vec2 mouse_diff = hogui_window_mouse_locked_diff(w);
 
         // Update current window position
-        //vec2 diff = hogui_update_position(w, mouse_diff);
         vec2 diff = {0};
-        if(w->locking_border_flags) {
+        if(resizing) {
             diff = hogui_resize(w, mouse_diff, 10.0f, 20.0f);
         } else {
             diff = hogui_update_position(w, mouse_diff);
@@ -393,7 +391,8 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
         border_color[1] = w->border_color[1];
         border_color[2] = w->border_color[2];
         border_color[3] = w->border_color[3];
-        if((w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_HOVERED_BORDER) || resizing) {
+        
+        if((w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_HOVERED_BORDER) || (w->locking_border_flags && w->temp_flags & HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED)) {
             vec4 red = (vec4) {1.0f, 0.0f, 0.0f, 1.0f};
             if(w->border_flags & HOGUI_SELECTING_BORDER_LEFT || w->locking_border_flags & HOGUI_LOCKING_BORDER_LEFT) {
                 border_color[0] = red;
@@ -540,7 +539,8 @@ hogui_test() {
 		.flags = 
             HOGUI_WINDOW_FLAG_TOPDOWN|
             HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
-            HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
+            HOGUI_WINDOW_FLAG_CONSTRAIN_X|HOGUI_WINDOW_FLAG_CONSTRAIN_Y|
+            HOGUI_WINDOW_FLAG_RESIZEABLE_H|HOGUI_WINDOW_FLAG_RESIZEABLE_V,
 		.width = 520.0f,
 		.height = 768.0f,
 		.position = (vec2){100.0f, 100.0f},
@@ -557,7 +557,8 @@ hogui_test() {
 			.flags = 
                 HOGUI_WINDOW_FLAG_CLIP_CHILDREN|
                 HOGUI_WINDOW_FLAG_CONSTRAIN_X|
-                HOGUI_WINDOW_FLAG_CONSTRAIN_Y,
+                HOGUI_WINDOW_FLAG_CONSTRAIN_Y|
+                HOGUI_WINDOW_FLAG_RESIZEABLE_H|HOGUI_WINDOW_FLAG_RESIZEABLE_V,
 			.position = (vec2){20.0f, 10.0f},
 			.width = 300.0f,
 			.height = 300.0f,
