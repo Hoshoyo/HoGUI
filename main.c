@@ -12,8 +12,10 @@
 #include "renderer/renderer_imm.h"
 #include "font/font_load.h"
 #include "hogui/hogui.h"
+#include "hogui/immgui_input.h"
+#include "hogui/immgui.h"
 
-static Font_Info font_info;
+Font_Info font_info = {0};
 
 int main() {
     if (!glfwInit()) {
@@ -53,48 +55,28 @@ int main() {
 
 	glClearColor(0.2f, 0.2f, 0.23f, 1.0f);
 
+	HG_Context ctx = {0};
+
 	bool running = true;
     while (!glfwWindowShouldClose(window) && running) {
 		glfwPollEvents();
 
-		Event e;
-		while (event_pop(&e)) {
-			if(e.type == EVENT_KEYBOARD_INPUT) {
-				switch(e.keyboard.type) {
-					case KEYBOARD_KEY_PRESS: {
-						if(e.keyboard.unicode == GLFW_KEY_ESCAPE)
-							running = false;
-					} break;
-					default: break;
-				}
-			} else if(e.type == EVENT_MOUSE_INPUT) {
-				switch(e.mouse.type) {
-					case MOUSE_BUTTON_PRESS: {
-					}break;
-					case MOUSE_BUTTON_RELEASE: {
-					}break;
-					case MOUSE_POSITION: {
-						int x = 0;
-					}break;
-					default:break;
-				}
-			}
-			hogui_input(&e);
-		}
+		input_immgui();
 
 		int width, height;
 		window_get_size(&width, &height);
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		hogui_update();
-		hogui_render(&font_info);
+		if(hg_do_button(&ctx, 1, "Hello")) {
+			printf("Hello\n");
+		}
+		hg_end_frame(&ctx);
 
 		renderer_imm_enable_blending();
 		glDisable(GL_DEPTH_TEST);
 		renderer_imm_flush(font_info.atlas_full_id);
-		renderer_imm_disable_blending();
-
+		renderer_imm_disable_blending();	
 
 		// Calculate elapsed time
 		// TODO(psv): make an OS level function here instead of ifdefs

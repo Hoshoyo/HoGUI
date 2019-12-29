@@ -273,18 +273,10 @@ Quad_2D
 quad_new_clipped(vec2 position, r32 width, r32 height, vec4 color, Clipping_Rect rect) {
 	Quad_2D q =
 	{
-		(Vertex_3D) { 
-			(vec3) { position.x, position.y, 0 }, 1.0f, (vec2) { 0.0f, 0.0f }, color, 1.0f, rect
-		},
-		(Vertex_3D) {
-			(vec3) { position.x + width, position.y, 0}, 1.0f, (vec2) { 1.0f, 0.0f }, color, 1.0f, rect
-		},
-		(Vertex_3D) {
-			(vec3) { position.x, position.y + height, 0 }, 1.0f, (vec2) { 0.0f, 1.0f }, color, 1.0f, rect
-		},
-		(Vertex_3D) {
-			(vec3) { position.x + width, position.y + height, 0 }, 1.0f, (vec2) { 1.0f, 1.0f }, color, 1.0f, rect
-		}
+		(Vertex_3D) { (vec3) { position.x, position.y, 0 }, 1.0f, (vec2) { 0.0f, 0.0f }, color, 1.0f, rect },
+		(Vertex_3D) { (vec3) { position.x + width, position.y, 0}, 1.0f, (vec2) { 1.0f, 0.0f }, color, 1.0f, rect },
+		(Vertex_3D) { (vec3) { position.x, position.y + height, 0 }, 1.0f, (vec2) { 0.0f, 1.0f }, color, 1.0f, rect },
+		(Vertex_3D) { (vec3) { position.x + width, position.y + height, 0 }, 1.0f, (vec2) { 1.0f, 1.0f }, color, 1.0f, rect }
 	};
 	return q;
 }

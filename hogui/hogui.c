@@ -392,7 +392,7 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
     Quad_2D* q_rendered = renderer_imm_quad(&q);
 
     //renderer_imm_debug_text(font_info, position, "Hello");
-    renderer_imm_debug_text_clipped(font_info, position, w->scope_defined.clipping, "Hello");
+    renderer_imm_debug_text_clipped(font_info, position, w->scope_defined.clipping, (char*)w->name);
 
     // Render border
     if(w->border_size[0] + w->border_size[1] + w->border_size[2] + w->border_size[3] > 0.0f) {

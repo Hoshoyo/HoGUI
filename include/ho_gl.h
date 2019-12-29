@@ -1599,6 +1599,8 @@ extern X##_proctype* hogl_##X
 
 #endif
 
+INSTANTIATE_GLCALL(GLuint64, glGetTextureHandleARB, (GLuint));
+
 INSTANTIATE_GLCALL(void, glClear, (GLbitfield mask));
 INSTANTIATE_GLCALL(void, glClearBufferiv, (GLenum buffer, GLint drawbuffer, const GLint* value));
 INSTANTIATE_GLCALL(void, glClearBufferuiv, (GLenum buffer, GLint drawbuffer, const GLuint* value));
@@ -2255,6 +2257,7 @@ extern int hogl_init_gl_extensions() {
 	LOAD_GL_PROC(glReadPixels);				// opengl32.dll
 
 	// Textures
+	LOAD_GL_PROC(glGetTextureHandleARB);
 	LOAD_GL_PROC(glActiveTexture);
 	LOAD_GL_PROC(glBindImageTexture);
 	LOAD_GL_PROC(glBindImageTextures);
@@ -2899,6 +2902,7 @@ extern int hogl_init_gl_extensions() {
 #define glReadBuffer hogl_glReadBuffer
 #define glReadPixels hogl_glReadPixels
 
+#define glGetTextureHandleARB hogl_glGetTextureHandleARB
 #define glActiveTexture hogl_glActiveTexture
 #define glBindImageTexture hogl_glBindImageTexture
 #define glBindImageTextures hogl_glBindImageTextures
