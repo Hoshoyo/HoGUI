@@ -63,7 +63,10 @@ bool hg_do_button(void* ctx, int id, const char* text) {
     }
 
     extern Font_Info font_info;
-    renderer_imm_debug_text(&font_info, (vec2){10,10}, (char*)text);
+    //renderer_imm_debug_text(&font_info, (vec2){10,10}, (char*)text);
+    Text_Render_Character_Position pos = {0};
+    pos.index = 1;
+    text_prerender(&font_info, "Hello", sizeof("Hello")-1, &pos, 1);
 
     return result;
 }

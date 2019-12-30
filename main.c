@@ -68,7 +68,7 @@ int main() {
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if(hg_do_button(&ctx, 1, "Hello")) {
+		if(hg_do_button(&ctx, 1, "HelloWWWWWWWWWWWMMMMM")) {
 			printf("Hello\n");
 		}
 		hg_end_frame(&ctx);
