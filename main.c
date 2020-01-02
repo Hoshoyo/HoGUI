@@ -70,8 +70,7 @@ int main() {
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		hg_window_begin(&ctx, 2, (vec2){200.0f, 200.0f}, 200.0f, 200.0f, "Foo");
-		if(hg_do_button(&ctx, 1, "OK")) {
+		if(hg_do_button(&ctx, 1, "HelloWWWWWWWWWWWMMMMM")) {
 			printf("Hello\n");
 		}
 		hg_end_frame(&ctx);

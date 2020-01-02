@@ -211,3 +211,174 @@ font_render_text(Font_Info* font_info, FRII* info, ustring str) {
 
 	return result;
 }
+
+Text_Render_Info
+text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_Character_Position* out_positions, int positions_count) {
+	Text_Render_Info result = {0};
+	result.line_count = 1;
+
+	result.bounding_box.x = 0.0f;
+	result.bounding_box.y = 0.0f;
+
+	Character* characters = font_info->characters;
+
+	int idx = 0;
+	r32 extra_height = 0.0f;
+	vec2 max_position = { 0 };
+	vec2 position = (vec2){0.0f, 0.0f};
+	Clipping_Rect clipping = (Clipping_Rect) { 0, 0, FLT_MAX, FLT_MAX };
+
+	int selection_count = 0;
+
+	for (s32 i = 0, c = 0, columns = 0; c < length; ++i) {
+		u32 advance = 0;
+		u32 unicode = ustring_get_unicode((u8*)text + idx, &advance);
+		idx += advance;
+
+		s32 repeat = 1;
+		c += 1;
+
+		Text_Render_Character_Position* fill_indexed_position = 0;
+		if(out_positions && selection_count < positions_count && out_positions[selection_count].index == i) {
+			fill_indexed_position = out_positions + selection_count;
+			selection_count++;
+		} else {
+			fill_indexed_position = 0;
+		}
+
+		bool new_line = false;
+
+		if (unicode == '\t') {
+			unicode = ' ';
+			repeat = 3;
+		} else if (!characters[unicode].renderable) {
+			unicode = ' ';
+			new_line = true;
+		}
+
+		for (int r = 0; r < repeat; ++r)
+		{
+			GLfloat xpos = position.x + characters[unicode].bearing[0];
+			GLfloat ypos = position.y -(characters[unicode].size[1] - characters[unicode].bearing[1]);
+			GLfloat w = (GLfloat)characters[unicode].size[0];
+			GLfloat h = (GLfloat)characters[unicode].size[1];
+
+			if(fill_indexed_position) {
+				if(r == 0) {
+					fill_indexed_position->position.x = xpos;
+					fill_indexed_position->position.y = ypos;
+				}
+				if(r == repeat - 1) {
+					fill_indexed_position->width = xpos + w - fill_indexed_position->position.x;
+					fill_indexed_position->height = ypos + h - fill_indexed_position->position.y;
+#if 0
+					renderer_imm_debug_box(
+						fill_indexed_position->position.x, 
+						fill_indexed_position->position.y, 
+						fill_indexed_position->width, 
+						fill_indexed_position->height, 
+						(vec4) { 1.0f, 1.0f, 0.0f, 1.0f });
+#endif
+				}
+			}
+
+#if 0
+			if (unicode != '\n' && unicode != '\t') {
+				vec4 color = (vec4){1.0f, 1.0f, 1.0f, 1.0f};
+				Quad_2D q = {
+					(Vertex_3D) { (vec3) {roundf(xpos),     roundf(ypos + h), 0.0f}, 1.0f, characters[unicode].botl, color, 0.0f, clipping },
+					(Vertex_3D) { (vec3) {roundf(xpos + w), roundf(ypos + h), 0.0f}, 1.0f, characters[unicode].botr, color, 0.0f, clipping },
+					(Vertex_3D) { (vec3) {roundf(xpos),     roundf(ypos),    0.0f }, 1.0f, characters[unicode].topl, color, 0.0f, clipping },
+					(Vertex_3D) { (vec3) {roundf(xpos + w), roundf(ypos),    0.0f }, 1.0f, characters[unicode].topr, color, 0.0f, clipping }
+				};
+
+				renderer_imm_quad(&q);
+			}
+#endif
+
+			if (xpos + w > max_position.x) {
+				max_position.x = xpos + w;
+			}
+			if (ypos + h > max_position.y) {
+				max_position.y = ypos + h;
+			}
+
+			if (new_line) {
+				if(result.max_column_count > columns) {
+					result.max_column_count = columns;
+				}
+				position.y -= font_info->font_size;
+				position.x = 0.0f;
+				result.line_count++;
+			} else {
+				position.x += characters[unicode].advance >> 6;
+			}
+		}
+	}
+	result.bounding_box.z = max_position.x;
+	result.bounding_box.w = max_position.y;
+
+	return result;
+}
+
+int
+text_render(Font_Info* font_info, const char* text, int length, vec2 position) {
+	Text_Render_Info result = {0};
+	Character* characters = font_info->characters;
+
+	int idx = 0;
+	r32 extra_height = 0.0f;
+	vec2 max_position = { 0 };
+	Clipping_Rect clipping = (Clipping_Rect) { 0, 0, FLT_MAX, FLT_MAX };
+
+	int selection_count = 0;
+
+	for (s32 i = 0, c = 0, columns = 0; c < length; ++i) {
+		u32 advance = 0;
+		u32 unicode = ustring_get_unicode((u8*)text + idx, &advance);
+		idx += advance;
+
+		s32 repeat = 1;
+		c += 1;
+
+		bool new_line = false;
+
+		if (unicode == '\t') {
+			unicode = ' ';
+			repeat = 3;
+		} else if (!characters[unicode].renderable) {
+			unicode = ' ';
+			new_line = true;
+		}
+
+		for (int r = 0; r < repeat; ++r)
+		{
+			GLfloat xpos = position.x + characters[unicode].bearing[0];
+			GLfloat ypos = position.y -(characters[unicode].size[1] - characters[unicode].bearing[1]);
+			GLfloat w = (GLfloat)characters[unicode].size[0];
+			GLfloat h = (GLfloat)characters[unicode].size[1];
+
+#if 1
+			if (unicode != '\n' && unicode != '\t') {
+				vec4 color = (vec4){1.0f, 1.0f, 1.0f, 1.0f};
+				Quad_2D q = {
+					(Vertex_3D) { (vec3) {roundf(xpos),     roundf(ypos + h), 0.0f}, 1.0f, characters[unicode].botl, color, 0.0f, clipping },
+					(Vertex_3D) { (vec3) {roundf(xpos + w), roundf(ypos + h), 0.0f}, 1.0f, characters[unicode].botr, color, 0.0f, clipping },
+					(Vertex_3D) { (vec3) {roundf(xpos),     roundf(ypos),    0.0f }, 1.0f, characters[unicode].topl, color, 0.0f, clipping },
+					(Vertex_3D) { (vec3) {roundf(xpos + w), roundf(ypos),    0.0f }, 1.0f, characters[unicode].topr, color, 0.0f, clipping }
+				};
+
+				renderer_imm_quad(&q);
+			}
+#endif
+			if (new_line) {
+				position.y -= font_info->font_size;
+				position.x = 0.0f;
+			} else {
+				position.x += characters[unicode].advance >> 6;
+			}
+		}
+	}
+
+	return 0;
+}

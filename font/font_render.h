@@ -47,3 +47,19 @@ typedef struct {
 } FRIO;
 
 FRIO font_render_text(Font_Info* font_info, FRII* info, ustring str);
+
+typedef struct {
+	int  index;
+	vec2 position;
+	int width;
+	int height;
+} Text_Render_Character_Position;
+
+typedef struct {
+	int  line_count;
+	int  max_column_count;
+	vec4 bounding_box;
+} Text_Render_Info;
+
+Text_Render_Info text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_Character_Position* out_positions, int positions_count);
+int              text_render(Font_Info* font_info, const char* text, int length, vec2 position);

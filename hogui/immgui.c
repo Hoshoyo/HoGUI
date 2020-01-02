@@ -66,7 +66,25 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text) {
     }
 
     extern Font_Info font_info;
-    renderer_imm_debug_text(&font_info, position, (char*)text);
+
+    Text_Render_Character_Position char_pos = {0};
+    char_pos.index = 1;
+    Text_Render_Info info = text_prerender(&font_info, "Hello", sizeof("Hello")-1, &char_pos, 1);
+    r32 hey = info.bounding_box.w - info.bounding_box.y;
+    r32 wid = info.bounding_box.z - info.bounding_box.x;
+
+    vec2 text_position = (vec2){position.x + (width - wid) / 2.0f, position.y + (height - hey) / 2.0f };
+    
+    text_render(&font_info, "Hello", sizeof("Hello")-1, text_position);
+    renderer_imm_debug_box(
+        char_pos.position.x + text_position.x + 1.0f, 
+        text_position.y - 3.0f, 
+        font_info.max_width, 
+        font_info.max_height, 
+        (vec4){1.0f, 1.0f, 1.0f, 1.0f});
+
+    Quad_2D q = quad_new((vec2){char_pos.position.x + text_position.x + 1.0f, text_position.y - 3.0f}, font_info.max_width, font_info.max_height, (vec4){1.0f, 1.0f, 1.0f, 0.3f});
+    renderer_imm_quad(&q);
 
     return result;
 }
