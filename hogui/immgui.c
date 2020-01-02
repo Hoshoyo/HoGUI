@@ -31,7 +31,7 @@ static void reset_hot(HG_Context* ctx) {
     ctx->hot.owner = -1;
 }
 
-bool hg_do_button(void* ctx, int id, const char* text) {
+bool hg_do_button(HG_Context* ctx, int id, const char* text) {
     bool result = false;
     if(active(ctx, id)) {
         if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
@@ -44,28 +44,36 @@ bool hg_do_button(void* ctx, int id, const char* text) {
         }
     }
 
+    r32 width = 100.0f;
+    r32 height = 25.0f;
+    vec2 position = (vec2){10.0f, 10.0f};
+
     u32 flags = 0;
-    if(input_inside(input_mouse_position(), (vec4){0.0, 0.0, 100.0f, 100.0f})) {
+    if(input_inside(input_mouse_position(), (vec4){position.x, position.y, width, height})) {
         set_hot(ctx, id);
     }
 
     // Draw
-
     if(active(ctx, id)) {
-        Quad_2D q = quad_new((vec2){0,0}, 100.0f, 100.0f, (vec4){1.0f, 0.3f, 0.3f, 1.0f});
+        Quad_2D q = quad_new(position, width, height, (vec4){1.0f, 0.3f, 0.3f, 1.0f});
         renderer_imm_quad(&q);
     } else if(hot(ctx, id)) {
-        Quad_2D q = quad_new((vec2){0,0}, 100.0f, 100.0f, (vec4){1.0f, 0.4f, 0.4f, 1.0f});
+        Quad_2D q = quad_new(position, width, height, (vec4){1.0f, 0.4f, 0.4f, 1.0f});
         renderer_imm_quad(&q);
     } else {
-        Quad_2D q = quad_new((vec2){0,0}, 100.0f, 100.0f, (vec4){0.7f, 0.3f, 0.3f, 1.0f});
+        Quad_2D q = quad_new(position, width, height, (vec4){0.7f, 0.3f, 0.3f, 1.0f});
         renderer_imm_quad(&q);
     }
 
     extern Font_Info font_info;
-    renderer_imm_debug_text(&font_info, (vec2){10,10}, (char*)text);
+    renderer_imm_debug_text(&font_info, position, (char*)text);
 
     return result;
+}
+
+void hg_window_begin(HG_Context* ctx, int id, vec2 position, r32 width, r32 height, const char* name) {
+    Quad_2D q = quad_new(position, width, height, (vec4){0.5f, 0.5f, 0.5f, 1.0f});
+    renderer_imm_quad(&q);
 }
 
 void hg_end_frame(HG_Context* ctx) {

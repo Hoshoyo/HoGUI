@@ -65,10 +65,13 @@ int main() {
 
 		int width, height;
 		window_get_size(&width, &height);
+
+		input_immgui_set_window_size(width, height);
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if(hg_do_button(&ctx, 1, "Hello")) {
+		hg_window_begin(&ctx, 2, (vec2){200.0f, 200.0f}, 200.0f, 200.0f, "Foo");
+		if(hg_do_button(&ctx, 1, "OK")) {
 			printf("Hello\n");
 		}
 		hg_end_frame(&ctx);
@@ -91,7 +94,7 @@ int main() {
 
 		total_time += os_time_us() - start_time;
 		if (total_time > 1000000.0) {
-			//logger_log_info("Rendered %d frames per second", frames);
+			printf("Rendered %d frames per second\n", frames);
 			total_time = 0;
 			frames = 0;
 		}

@@ -12,6 +12,7 @@
 #define INPUT_SELECTING_BORDER_BOTTOM (1 << 3)
 
 void input_immgui();
+void input_immgui_set_window_size(int width, int height);
 bool input_is_key_down(u32 key);
 bool input_is_mouse_button_down(int button);
 int  input_key_went_down(u32 key);

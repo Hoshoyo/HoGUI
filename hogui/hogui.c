@@ -145,6 +145,7 @@ hogui_reset_scope(Scope* scope, bool render_pass) {
         scope->max_width = 0.0f;
         scope->max_height = 0.0f;
     }
+    return 0;
 }
 
 vec2
@@ -433,7 +434,7 @@ hogui_render_window(HoGui_Window* w, Font_Info* font_info) {
 
     // Reset Scope info
     hogui_reset_scope(&w->scope_defined, true);
-    
+    return 0;    
 }
 
 // External function to render all windows in the global scope
@@ -446,6 +447,7 @@ hogui_render(Font_Info* font_info) {
 
     // Debug information
     renderer_imm_debug_text(font_info, (vec2){5.0f, 5.0f}, "Mouse: %.0f %.0f", mouse_current_pos.x, mouse_current_pos.y);
+    return 0;
 }
 
 // Calculates the positioning of all windows, also the current
@@ -498,6 +500,8 @@ hogui_update_window(HoGui_Window* w) {
     }
     // Reset scope
     hogui_reset_scope(&w->scope_defined, false);
+
+    return 0;
 }
 
 int
@@ -529,6 +533,8 @@ hogui_update() {
     if(global_locked) {
         global_locked->temp_flags |= HOGUI_WINDOW_TEMP_FLAG_MOUSE_LOCKED;
     }
+
+    return 0;
 }
 
 int 
@@ -549,6 +555,7 @@ hogui_input(Event* e) {
         }break;
         default: break;
     }
+    return 0;
 }
 
 void

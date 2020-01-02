@@ -32,6 +32,11 @@ typedef struct {
 
 static Input_State input_state;
 
+void input_immgui_set_window_size(int width, int height) {
+    input_state.window.width = width;
+    input_state.window.height = height;
+}
+
 void input_immgui() {
     // Reset input events
     memset(input_state.keyboard.key_went_down, 0, sizeof(input_state.keyboard.key_went_down));
@@ -97,10 +102,12 @@ bool input_is_mouse_button_down(int button) {
 int input_key_went_down(u32 key) {
     if(key >= 0 && key < KEYBOARD_KEY_COUNT)
         return input_state.keyboard.key_went_down[key];
+    return 0;
 }
 int input_key_went_up(u32 key) {
     if(key >= 0 && key < KEYBOARD_KEY_COUNT)
         return input_state.keyboard.key_went_up[key];
+    return 0;
 }
 int input_mouse_button_went_down(int button, int* x, int* y) {
     if(button >= 0 && button < MOUSE_BUTTON_COUNT) {
@@ -108,6 +115,7 @@ int input_mouse_button_went_down(int button, int* x, int* y) {
         if(y) *y = input_state.mouse.y;
         return input_state.mouse.button_went_down[button];
     }
+    return 0;
 }
 int input_mouse_button_went_up(int button, int* x, int* y) {
     if(button >= 0 && button < MOUSE_BUTTON_COUNT) {
@@ -115,6 +123,7 @@ int input_mouse_button_went_up(int button, int* x, int* y) {
         if(y) *y = input_state.mouse.y;
         return input_state.mouse.button_went_up[button];
     }
+    return 0;
 }
 vec2 input_mouse_position() {
     return (vec2){(r32)input_state.mouse.x, (r32)input_state.mouse.y};
