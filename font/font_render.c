@@ -217,9 +217,6 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 	Text_Render_Info result = {0};
 	result.line_count = 1;
 
-	result.bounding_box.x = 0.0f;
-	result.bounding_box.y = 0.0f;
-
 	Character* characters = font_info->characters;
 
 	int idx = 0;
@@ -295,9 +292,9 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 				renderer_imm_quad(&q);
 			}
 #endif
-
-			if (xpos + w > max_position.x) {
-				max_position.x = xpos + w;
+			r32 advance = (r32)(characters[unicode].advance >> 6);
+			if (xpos + advance > max_position.x) {
+				max_position.x = xpos + advance;
 			}
 			if (ypos + h > max_position.y) {
 				max_position.y = ypos + h;
@@ -311,25 +308,24 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 				position.x = 0.0f;
 				result.line_count++;
 			} else {
-				position.x += characters[unicode].advance >> 6;
+				position.x += advance;
 			}
 		}
 	}
-	result.bounding_box.z = max_position.x;
-	result.bounding_box.w = max_position.y;
+	result.width = max_position.x;
+	result.height = max_position.y;
 
 	return result;
 }
 
 int
-text_render(Font_Info* font_info, const char* text, int length, vec2 position) {
+text_render(Font_Info* font_info, const char* text, int length, vec2 position, Clipping_Rect clipping) {
 	Text_Render_Info result = {0};
 	Character* characters = font_info->characters;
 
 	int idx = 0;
 	r32 extra_height = 0.0f;
 	vec2 max_position = { 0 };
-	Clipping_Rect clipping = (Clipping_Rect) { 0, 0, FLT_MAX, FLT_MAX };
 
 	int selection_count = 0;
 
@@ -339,7 +335,7 @@ text_render(Font_Info* font_info, const char* text, int length, vec2 position) {
 		idx += advance;
 
 		s32 repeat = 1;
-		c += 1;
+		c += (s32)advance;
 
 		bool new_line = false;
 
@@ -381,4 +377,8 @@ text_render(Font_Info* font_info, const char* text, int length, vec2 position) {
 	}
 
 	return 0;
+}
+
+Clipping_Rect font_render_no_clipping() {
+	return (Clipping_Rect) { 0, 0, FLT_MAX, FLT_MAX };
 }

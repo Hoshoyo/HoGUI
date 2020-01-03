@@ -35,6 +35,7 @@ bool string_equal_len(const char* s1, s64 s1_length, const char* s2, s64 s2_leng
 char* ustring_to_utf8(ustring s, s32* out_size_bytes);
 
 u32 ustring_get_unicode(u8* text, u32* advance);
+s32 ustring_unicode_to_utf8(u32 unicode, char* buffer);
 
 void ustring_print(ustring s);
 
@@ -240,6 +241,39 @@ ustring_to_utf8(ustring s, s32* out_size_bytes) {
 	if(out_size_bytes)
 		*out_size_bytes = (s32)(result - start);
     return (char*)start;
+}
+
+s32
+ustring_unicode_to_utf8(u32 unicode, char* buffer) {
+    char* start = buffer;
+	char* result = buffer;
+    {
+        if(unicode <= 0x7f) {
+            *result++ = (u8)unicode;
+        } else if(unicode >= 0x80 && unicode <= 0x7ff) {
+            u8 b1 = 0xc0 | (unicode >> 6);
+            u8 b2 = 0x80 | ((unicode & 0x3f) | 0x30000000);
+            *result++ = b1;
+            *result++ = b2;
+        } else if(unicode >= 0x800 && unicode <= 0xffff) {
+            u8 b1 = 0xe0 | (unicode >> 12);
+            u8 b2 = 0x80 | (((unicode >> 6) & 0x3f) | 0x30000000);
+            u8 b3 = 0x80 | ((unicode & 0x3f) | 0x30000000);
+            *result++ = b1;
+            *result++ = b2;
+            *result++ = b3;
+        } else if(unicode >= 0x00010000 && unicode <= 0x001fffff) {
+            u8 b1 = 0xf0 | (unicode >> 18);
+            u8 b2 = 0x80 | (((unicode >> 12) & 0x3f) | 0x30000000);
+            u8 b3 = 0x80 | (((unicode >> 6) & 0x3f) | 0x30000000);
+            u8 b4 = 0x80 | ((unicode & 0x3f) | 0x30000000);
+            *result++ = b1;
+            *result++ = b2;
+            *result++ = b3;
+            *result++ = b4;
+        }
+    }
+	return (s32)(result - start);
 }
 
 void ustring_append_fmt(char* buffer, ustring* s, const char* fmt, va_list args) {

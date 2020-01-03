@@ -47,6 +47,7 @@ typedef struct {
 } FRIO;
 
 FRIO font_render_text(Font_Info* font_info, FRII* info, ustring str);
+vec4 font_render_no_clipping();
 
 typedef struct {
 	int  index;
@@ -58,8 +59,9 @@ typedef struct {
 typedef struct {
 	int  line_count;
 	int  max_column_count;
-	vec4 bounding_box;
+	r32  width;
+	r32  height;
 } Text_Render_Info;
 
 Text_Render_Info text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_Character_Position* out_positions, int positions_count);
-int              text_render(Font_Info* font_info, const char* text, int length, vec2 position);
+int              text_render(Font_Info* font_info, const char* text, int length, vec2 position, vec4 clipping);

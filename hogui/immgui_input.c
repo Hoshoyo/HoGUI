@@ -21,6 +21,9 @@ typedef struct {
     int key_state[KEYBOARD_KEY_COUNT];
     int key_went_up[KEYBOARD_KEY_COUNT];
     int key_went_down[KEYBOARD_KEY_COUNT];
+    int key_presses[64];
+    int key_press_count;
+    int key_press_index;
 } Input_Keyboard;
 
 typedef struct {
@@ -45,17 +48,30 @@ void input_immgui() {
     memset(input_state.mouse.button_went_down, 0, sizeof(input_state.mouse.button_went_down));
     memset(input_state.mouse.button_went_up, 0, sizeof(input_state.mouse.button_went_up));
 
+    input_state.keyboard.key_press_count = 0;
+    input_state.keyboard.key_press_index = 0;
+
     Event e;
     while (event_pop(&e)) {
         if(e.type == EVENT_KEYBOARD_INPUT) {
             switch(e.keyboard.type) {
+                case KEYBOARD_KEY_REPEAT:
                 case KEYBOARD_KEY_PRESS: {
                     input_state.keyboard.key_state[e.keyboard.unicode] = true;
                     input_state.keyboard.key_went_down[e.keyboard.unicode] += 1;
+                    if(e.keyboard.unicode == GLFW_KEY_ENTER)
+                        input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
+                    if(e.keyboard.unicode == GLFW_KEY_BACKSPACE)
+                        input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
+                    if(e.keyboard.unicode == GLFW_KEY_TAB)
+                        input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = '\t';
                 } break;
                 case KEYBOARD_KEY_RELEASE: {
                     input_state.keyboard.key_state[e.keyboard.unicode] = false;
                     input_state.keyboard.key_went_up[e.keyboard.unicode] += 1;
+                } break;
+                case KEYBOARD_CHAR: {
+                    input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
                 } break;
                 default: break;
             }
@@ -85,6 +101,13 @@ void input_immgui() {
             }
         }
     }
+}
+
+bool input_next_key_pressed(u32* key) {
+    if(input_state.keyboard.key_press_index == input_state.keyboard.key_press_count)
+        return false;
+    *key = input_state.keyboard.key_presses[input_state.keyboard.key_press_index++];
+    return true;
 }
 
 bool input_is_key_down(u32 key) {
