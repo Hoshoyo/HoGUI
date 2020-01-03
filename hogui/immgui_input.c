@@ -59,10 +59,19 @@ void input_immgui() {
                 case KEYBOARD_KEY_PRESS: {
                     input_state.keyboard.key_state[e.keyboard.unicode] = true;
                     input_state.keyboard.key_went_down[e.keyboard.unicode] += 1;
-                    if(e.keyboard.unicode == GLFW_KEY_ENTER)
-                        input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
-                    if(e.keyboard.unicode == GLFW_KEY_BACKSPACE)
-                        input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
+                    switch(e.keyboard.unicode) {
+                        case GLFW_KEY_ENTER:
+                        case GLFW_KEY_BACKSPACE:
+                        case GLFW_KEY_LEFT:
+                        case GLFW_KEY_RIGHT:
+                        case GLFW_KEY_UP:
+                        case GLFW_KEY_DOWN:
+                        case GLFW_KEY_DELETE:
+                        case GLFW_KEY_END:
+                        case GLFW_KEY_HOME:
+                            input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
+                        default: break;
+                    }
                     if(e.keyboard.unicode == GLFW_KEY_TAB)
                         input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = '\t';
                 } break;

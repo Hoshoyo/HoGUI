@@ -95,8 +95,18 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text) {
 
 static int length_current_utf8(char* buffer) {
     int l = 1;
-    while (((*buffer) & 0xc0) == 0x80) {
+    while (* buffer && l < 4 && ((*buffer) & 0xc0) == 0x80) {
         buffer--;
+        l++;
+    }
+    return l;
+}
+
+static int length_next_utf8(char* buffer, int max) {
+    int l = 1;
+    buffer++; // skip first
+    while (*buffer && l < max && ((*buffer) & 0xc0) == 0x80) {
+        buffer++;
         l++;
     }
     return l;
@@ -109,9 +119,36 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
         char utf8_key[4] = {0};
         while(input_next_key_pressed(&key)) {
             switch(key) {
+                case GLFW_KEY_END:{
+                    *cursor_index = *buffer_length;
+                } break;
+                case GLFW_KEY_HOME: {
+                    *cursor_index = 0;
+                } break;
+                case GLFW_KEY_LEFT: {
+                    if(*cursor_index > 0) {
+                        int l = length_current_utf8(buffer + *cursor_index - 1);
+                        (*cursor_index) -= l;
+                    }
+                } break;
+                case GLFW_KEY_RIGHT: {
+                    if(*cursor_index < *buffer_length) {
+                        int l = length_next_utf8(buffer + *cursor_index, *buffer_length - *cursor_index);
+                        (*cursor_index) += l;
+                    }
+                } break;
+                case GLFW_KEY_DELETE: {
+                    if(*cursor_index < *buffer_length) {
+                        int l = length_next_utf8(buffer + *cursor_index, *buffer_length - *cursor_index);
+                        memcpy(buffer + *cursor_index, buffer + *cursor_index + l, *buffer_length - *cursor_index - l);
+                        *buffer_length -= l;
+                    }
+                } break;
                 case GLFW_KEY_BACKSPACE: {
-                    if (*buffer_length > 0) {
-                        int l = length_current_utf8(buffer + *buffer_length - 1);
+                    if (*buffer_length > 0 && *cursor_index > 0) {
+                        // abc
+                        int l = length_current_utf8(buffer + *cursor_index - 1);
+                        memcpy(buffer + *cursor_index - l, buffer + *cursor_index, *buffer_length - *cursor_index);
                         (*buffer_length) -= l;
                         (*cursor_index) -= l;
                     }
@@ -122,7 +159,8 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
                 default: {
                     int length = ustring_unicode_to_utf8(key, utf8_key);
                     if(*buffer_length + length < buffer_max_length) {
-                        memcpy(buffer + *buffer_length, utf8_key, length);
+                        memcpy(buffer + *cursor_index + length, buffer + *cursor_index, *buffer_length - *cursor_index);
+                        memcpy(buffer + *cursor_index, utf8_key, length);
                         (*cursor_index) += length;
                         (*buffer_length) += length;
                     } else {
@@ -146,19 +184,20 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
     }
 
     // Draw
+    vec4 color = (vec4){0.4f, 0.4f, 0.38f, 1.0f};
     if(active(ctx, id)) {
-        Quad_2D q = quad_new(position, width, height, (vec4){0.3f, 0.3f, 0.3f, 1.0f});
-        renderer_imm_quad(&q);
-    } else {
-        Quad_2D q = quad_new(position, width, height, (vec4){0.4f, 0.4f, 0.3f, 1.0f});
-        renderer_imm_quad(&q);
+        color = (vec4){0.3f, 0.3f, 0.3f, 1.0f};
+    } else if (hot(ctx, id)) {
+        color = (vec4){0.4f, 0.4f, 0.3f, 1.0f};
     }
+    Quad_2D q = quad_new(position, width, height, color);
+    renderer_imm_quad(&q);
 
     extern Font_Info font_info;
     // Pre-render text
-    //Text_Render_Character_Position char_pos = {0};
-    //char_pos.index = 1;
-    Text_Render_Info info = text_prerender(&font_info, buffer, *buffer_length, 0, 0);
+    Text_Render_Character_Position cursor_pos = {0};
+    cursor_pos.index = *cursor_index;
+    Text_Render_Info info = text_prerender(&font_info, buffer, *buffer_length, &cursor_pos, 1);
     vec2 text_position = (vec2){position.x + 2.0f, position.y + (height - font_info.max_height) / 2.0f };
     if(info.width - width > 0.0f) {
         text_position.x -= (info.width - width + 2.0f);
@@ -167,6 +206,15 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
     // Render text
     Clipping_Rect clipping = (Clipping_Rect) { position.x, position.y, width, height };
     text_render(&font_info, buffer, *buffer_length, text_position, clipping);
+
+    if(active(ctx, id)) {
+        renderer_imm_debug_box(
+            cursor_pos.position.x + text_position.x + 1.0f, 
+            text_position.y - 3.0f, 
+            font_info.max_width, 
+            font_info.max_height, 
+            (vec4){1.0f, 1.0f, 1.0f, 1.0f});
+    }
 
     return result;
 }

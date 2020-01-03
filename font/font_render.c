@@ -233,10 +233,10 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 		idx += advance;
 
 		s32 repeat = 1;
-		c += 1;
+		c += (s32)advance;
 
 		Text_Render_Character_Position* fill_indexed_position = 0;
-		if(out_positions && selection_count < positions_count && out_positions[selection_count].index == i) {
+		if(out_positions && selection_count < positions_count && out_positions[selection_count].index == (idx - advance)) {
 			fill_indexed_position = out_positions + selection_count;
 			selection_count++;
 		} else {
@@ -314,6 +314,12 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 	}
 	result.width = max_position.x;
 	result.height = max_position.y;
+
+	if (out_positions && selection_count < positions_count && out_positions[selection_count].index == idx) {
+		Text_Render_Character_Position* fill_indexed_position = out_positions + selection_count;
+		fill_indexed_position->position.x = position.x;
+		fill_indexed_position->position.y = position.y;
+	}
 
 	return result;
 }
