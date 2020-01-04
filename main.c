@@ -61,6 +61,7 @@ int main() {
 	char buffer[16];
 	int length = 0;
 	int cursor_index = 0;
+	int selection_distance = 0;
     while (!glfwWindowShouldClose(window) && running) {
 		glfwPollEvents();
 
@@ -76,7 +77,7 @@ int main() {
 		if(hg_do_button(&ctx, 1, "HelloWWWWWWWWWWWMMMMM")) {
 			printf("Hello\n");
 		}
-		hg_do_input(&ctx, 2, buffer, 16, &length, &cursor_index);
+		hg_do_input(&ctx, 2, buffer, 16, &length, &cursor_index, &selection_distance);
 
 		hg_end_frame(&ctx);
 

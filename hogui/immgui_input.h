@@ -19,6 +19,6 @@ int  input_key_went_down(u32 key);
 int  input_key_went_up(u32 key);
 int  input_mouse_button_went_down(int button, int* x, int* y);
 int  input_mouse_button_went_up(int button, int* x, int* y);
-bool input_next_key_pressed(u32* key);
+bool input_next_key_pressed(u32* key, s32* mods);
 vec2 input_mouse_position();
 bool input_inside(vec2 p, vec4 clipping);

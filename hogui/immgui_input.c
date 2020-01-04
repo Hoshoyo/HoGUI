@@ -22,6 +22,7 @@ typedef struct {
     int key_went_up[KEYBOARD_KEY_COUNT];
     int key_went_down[KEYBOARD_KEY_COUNT];
     int key_presses[64];
+    int key_presses_mods[64];
     int key_press_count;
     int key_press_index;
 } Input_Keyboard;
@@ -69,6 +70,7 @@ void input_immgui() {
                         case GLFW_KEY_DELETE:
                         case GLFW_KEY_END:
                         case GLFW_KEY_HOME:
+                            input_state.keyboard.key_presses_mods[input_state.keyboard.key_press_count] = e.keyboard.mods;
                             input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
                         default: break;
                     }
@@ -80,6 +82,7 @@ void input_immgui() {
                     input_state.keyboard.key_went_up[e.keyboard.unicode] += 1;
                 } break;
                 case KEYBOARD_CHAR: {
+                    input_state.keyboard.key_presses_mods[input_state.keyboard.key_press_count] = e.keyboard.mods;
                     input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
                 } break;
                 default: break;
@@ -112,9 +115,10 @@ void input_immgui() {
     }
 }
 
-bool input_next_key_pressed(u32* key) {
+bool input_next_key_pressed(u32* key, s32* mods) {
     if(input_state.keyboard.key_press_index == input_state.keyboard.key_press_count)
         return false;
+    *mods = input_state.keyboard.key_presses_mods[input_state.keyboard.key_press_index];
     *key = input_state.keyboard.key_presses[input_state.keyboard.key_press_index++];
     return true;
 }
