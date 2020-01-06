@@ -27,9 +27,9 @@ void input_get_mouse_pos(r32* x, r32* y) {
 	*y = roundf(input_mouse.w_height - input_mouse.y);
 }
 
-const char* input_get_clipboard() {
-	return glfwGetClipboardString(glfw_window);
-}
+//const char* input_get_clipboard() {
+//	return glfwGetClipboardString(glfw_window);
+//}
 
 void
 window_size_callback(GLFWwindow* window, s32 width, s32 height) {

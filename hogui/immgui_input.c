@@ -32,6 +32,7 @@ typedef struct {
     Input_Keyboard keyboard;
 
     Input_Window window;
+    GLFWwindow* glfw_window;
 } Input_State;
 
 static Input_State input_state;
@@ -41,7 +42,8 @@ void input_immgui_set_window_size(int width, int height) {
     input_state.window.height = height;
 }
 
-void input_immgui() {
+void input_immgui(GLFWwindow* window) {
+    input_state.glfw_window = window;
     // Reset input events
     memset(input_state.keyboard.key_went_down, 0, sizeof(input_state.keyboard.key_went_down));
     memset(input_state.keyboard.key_went_up, 0, sizeof(input_state.keyboard.key_went_up));
@@ -72,6 +74,13 @@ void input_immgui() {
                         case GLFW_KEY_HOME:
                             input_state.keyboard.key_presses_mods[input_state.keyboard.key_press_count] = e.keyboard.mods;
                             input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
+                        case GLFW_KEY_C:
+                        case GLFW_KEY_V: {
+                            if(e.keyboard.mods & GLFW_MOD_CONTROL) {
+                                input_state.keyboard.key_presses_mods[input_state.keyboard.key_press_count] = e.keyboard.mods;
+                                input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
+                            }
+                        } break;
                         default: break;
                     }
                     if(e.keyboard.unicode == GLFW_KEY_TAB)
@@ -170,6 +179,17 @@ bool input_inside(vec2 p, vec4 clipping) {
         (p.x >= clipping.x && p.x <= clipping.x + clipping.z) && 
         (p.y >= clipping.y && p.y <= clipping.y + clipping.w)
     );
+}
+
+const char* input_get_clipboard() {
+    return glfwGetClipboardString(input_state.glfw_window);
+}
+
+void input_set_clipboard(const char* text, int length) {
+    char* str = (char*)calloc(1, length + 1);
+    memcpy(str, text, length);
+    glfwSetClipboardString(input_state.glfw_window, str);
+    free(str);
 }
 
 // clipping (vec4) {x, y, width, height}

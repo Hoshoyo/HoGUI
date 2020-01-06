@@ -65,7 +65,7 @@ int main() {
     while (!glfwWindowShouldClose(window) && running) {
 		glfwPollEvents();
 
-		input_immgui();
+		input_immgui(window);
 
 		int width, height;
 		window_get_size(&width, &height);
@@ -73,6 +73,8 @@ int main() {
 		input_immgui_set_window_size(width, height);
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		hg_window_begin(&ctx, 3, (vec2){0,0}, 300, 200, "Foo");
 
 		if(hg_do_button(&ctx, 1, "HelloWWWWWWWWWWWMMMMM")) {
 			printf("Hello\n");
