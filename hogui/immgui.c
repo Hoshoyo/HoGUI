@@ -74,21 +74,10 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text) {
 
     extern Font_Info font_info;
 
-    Text_Render_Character_Position char_pos = {0};
-    char_pos.index = 1;
-    Text_Render_Info info = text_prerender(&font_info, "Hello", sizeof("Hello")-1, &char_pos, 1);
+    Text_Render_Info info = text_prerender(&font_info, "Hello", sizeof("Hello")-1, 0, 0);
     vec2 text_position = (vec2){position.x + (width - info.width) / 2.0f, position.y + (height - info.height) / 2.0f };
     
     text_render(&font_info, "Hello", sizeof("Hello")-1, text_position, font_render_no_clipping());
-    renderer_imm_debug_box(
-        char_pos.position.x + text_position.x + 1.0f, 
-        text_position.y - 3.0f, 
-        font_info.max_width, 
-        font_info.max_height, 
-        (vec4){1.0f, 1.0f, 1.0f, 1.0f});
-
-    Quad_2D q = quad_new((vec2){char_pos.position.x + text_position.x + 1.0f, text_position.y - 3.0f}, font_info.max_width, font_info.max_height, (vec4){1.0f, 1.0f, 1.0f, 0.3f});
-    renderer_imm_quad(&q);
 
     return result;
 }
@@ -153,9 +142,25 @@ static int delete_selection_backward(char* buffer, int* cursor_index, int* selec
     return 0;
 }
 
+static int insert_text(const char* clip, int clipboard_length, char* buffer, int buffer_max_length, int* cursor_index, int* selection_distance, int* buffer_length) {
+    int insert_max = buffer_max_length - *buffer_length + (*selection_distance < 0 ? -(*selection_distance) : *selection_distance);
+    if(*selection_distance == 0) {
+        
+        int inserted_length = MIN(insert_max, clipboard_length);
+        memcpy(buffer + *cursor_index + inserted_length, buffer + *cursor_index, inserted_length);
+        memcpy(buffer + *cursor_index, clip, inserted_length);
+        *cursor_index += inserted_length;
+        *buffer_length += inserted_length;
+        return inserted_length;
+    }
+    return 0;
+}
+
 // selection_distance == 0 means no selection is active
 bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, int* buffer_length, int* cursor_index, int* selection_distance) {
     bool result = true;
+    bool reset_selection = true;
+
     if(active(ctx, id)) {
         u32 key = 0;
         s32 mods = 0;
@@ -176,6 +181,16 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
                     *cursor_index = 0;
                 } break;
                 case GLFW_KEY_LEFT: {
+                    if(!(mods & GLFW_MOD_SHIFT)) {
+                        if(*selection_distance > 0) {
+                            *selection_distance = 0;
+                            break;
+                        } else if(*selection_distance < 0) {
+                            *cursor_index += *selection_distance;
+                            *selection_distance = 0;
+                            break;
+                        }
+                    }
                     if(*cursor_index > 0) {
                         int l = length_current_utf8(buffer + *cursor_index - 1);
                         (*cursor_index) -= l;
@@ -185,6 +200,16 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
                     }
                 } break;
                 case GLFW_KEY_RIGHT: {
+                    if(!(mods & GLFW_MOD_SHIFT)) {
+                        if(*selection_distance > 0) {
+                            *cursor_index += *selection_distance;
+                            *selection_distance = 0;
+                            break;
+                        } else if(*selection_distance < 0) {
+                            *selection_distance = 0;
+                            break;
+                        }
+                    }
                     if(*cursor_index < *buffer_length) {
                         int l = length_next_utf8(buffer + *cursor_index, *buffer_length - *cursor_index);
                         (*cursor_index) += l;
@@ -203,9 +228,31 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
                     reset_active(ctx);
                 } break;
                 default: {
+                    
+                    if(mods & GLFW_MOD_CONTROL) {
+                        if(key == 'V') {
+                            if (*selection_distance != 0) {
+                                delete_selection_forward(buffer, cursor_index, selection_distance, buffer_length);
+                            }
+                            const char* clip = input_get_clipboard();
+                            int clipboard_length = strlen(clip);
+                            insert_text(clip, clipboard_length, buffer, buffer_max_length, cursor_index, selection_distance, buffer_length);
+                        }
+                        if(key == 'C') {
+                            if(*selection_distance > 0) {
+                                input_set_clipboard(buffer + *cursor_index, *selection_distance);
+                            } else if(*selection_distance < 0) {
+                                input_set_clipboard(buffer + *cursor_index + *selection_distance, -(*selection_distance));
+                            }
+                            reset_selection = false;
+                        }
+                        break;
+                    }
+                    
                     if (*selection_distance != 0) {
                         delete_selection_forward(buffer, cursor_index, selection_distance, buffer_length);
                     }
+
                     int length = ustring_unicode_to_utf8(key, utf8_key);
                     if(*buffer_length + length < buffer_max_length) {
                         memcpy(buffer + *cursor_index + length, buffer + *cursor_index, *buffer_length - *cursor_index);
@@ -218,7 +265,7 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
                 } break;
             }
 
-            if (!(mods & GLFW_MOD_SHIFT)) {
+            if (!(mods & GLFW_MOD_SHIFT) && reset_selection) {
                 *selection_distance = 0;
             }
         }
