@@ -21,6 +21,8 @@ typedef vec4 Clipping_Rect;
 // Renderer Immediate functions
 Quad_2D* renderer_imm_quad(Quad_2D* q);
 void renderer_imm_border(Quad_2D* q, r32 border_width[4], vec4 color[4]);
+void renderer_imm_outside_border(Quad_2D* q, r32 border_width[4], vec4 color[4]);
+void renderer_imm_border_clipped(Quad_2D* q, r32 border_width[4], vec4 color[4], Clipping_Rect clipping);
 void renderer_imm_flush(u32 font_id);
 void renderer_imm_enable_blending();
 void renderer_imm_disable_blending();

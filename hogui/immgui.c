@@ -61,34 +61,26 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text) {
     }
 
     // Draw
+    Quad_2D button_quad = {0};
     if(active(ctx, id)) {
-        Quad_2D q = quad_new(position, width, height, (vec4){1.0f, 0.3f, 0.3f, 1.0f});
-        renderer_imm_quad(&q);
+        button_quad = quad_new(position, width, height, (vec4){1.0f, 0.3f, 0.3f, 1.0f});
     } else if(hot(ctx, id)) {
-        Quad_2D q = quad_new(position, width, height, (vec4){1.0f, 0.4f, 0.4f, 1.0f});
-        renderer_imm_quad(&q);
+        button_quad = quad_new(position, width, height, (vec4){1.0f, 0.4f, 0.4f, 1.0f});
     } else {
-        Quad_2D q = quad_new(position, width, height, (vec4){0.7f, 0.3f, 0.3f, 1.0f});
-        renderer_imm_quad(&q);
+        button_quad = quad_new(position, width, height, (vec4){0.7f, 0.3f, 0.3f, 1.0f});
     }
+    renderer_imm_quad(&button_quad);
+
+    r32 button_border_width[] = {2.0f, 2.0f, 2.0f, 2.0f};
+    vec4 button_border_color[] = {(vec4){0.3f, 0.3f, 0.3f, 1.0f}, (vec4){0.5f, 0.5f, 0.5f, 1.0f}, (vec4){0.3f, 0.3f, 0.3f, 1.0f}, (vec4){0.5f, 0.5f, 0.5f, 1.0f}};
+    renderer_imm_border(&button_quad, button_border_width, button_border_color);
 
     extern Font_Info font_info;
 
-    Text_Render_Character_Position char_pos = {0};
-    char_pos.index = 1;
-    Text_Render_Info info = text_prerender(&font_info, "Hello", sizeof("Hello")-1, &char_pos, 1);
+    Text_Render_Info info = text_prerender(&font_info, "Hello", sizeof("Hello")-1, 0, 0);
     vec2 text_position = (vec2){position.x + (width - info.width) / 2.0f, position.y + (height - info.height) / 2.0f };
     
     text_render(&font_info, "Hello", sizeof("Hello")-1, text_position, font_render_no_clipping());
-    renderer_imm_debug_box(
-        char_pos.position.x + text_position.x + 1.0f, 
-        text_position.y - 3.0f, 
-        font_info.max_width, 
-        font_info.max_height, 
-        (vec4){1.0f, 1.0f, 1.0f, 1.0f});
-
-    Quad_2D q = quad_new((vec2){char_pos.position.x + text_position.x + 1.0f, text_position.y - 3.0f}, font_info.max_width, font_info.max_height, (vec4){1.0f, 1.0f, 1.0f, 0.3f});
-    renderer_imm_quad(&q);
 
     return result;
 }
@@ -229,8 +221,8 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
     }
 
     vec2 position = (vec2){200, 10};
-    r32 width = 80.0f;
-    r32 height = 30.0f;
+    r32 width = 200.0f;
+    r32 height = 28.0f;
 
     if(input_inside(input_mouse_position(), (vec4){position.x, position.y, width, height})) {
         set_hot(ctx, id);
@@ -247,6 +239,9 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
     }
     Quad_2D q = quad_new(position, width, height, color);
     renderer_imm_quad(&q);
+    r32 input_border_width[] = {2.0f, 2.0f, 2.0f, 2.0f};
+    vec4 input_border_color[] = {(vec4){0.2f, 0.2f, 0.2f, 1.0f}, (vec4){0.6f, 0.6f, 0.6f, 1.0f}, (vec4){0.5f, 0.5f, 0.5f, 1.0f}, (vec4){0.2f, 0.2f, 0.2f, 1.0f}};
+    renderer_imm_outside_border(&q, input_border_width, input_border_color);
 
     extern Font_Info font_info;
     // Pre-render text
@@ -263,8 +258,10 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
 
     Text_Render_Info info = text_prerender(&font_info, buffer, *buffer_length, cursor_pos, 2);
     vec2 text_position = (vec2){position.x + 2.0f, position.y + (height - font_info.max_height) / 2.0f };
-    if(info.width - width > 0.0f) {
-        text_position.x -= (info.width - width + 2.0f);
+
+    // If the cursor is outside the view, bring it into view
+    if(cursor_pos[cindex].position.x > width) {
+        text_position.x -= (cursor_pos[cindex].position.x - width + font_info.max_width + info.width - cursor_pos[cindex].position.x);
     }
 
     // Render text
@@ -272,13 +269,9 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
     text_render(&font_info, buffer, *buffer_length, text_position, clipping);
 
     if(active(ctx, id)) {
-        // Render cursor
-        renderer_imm_debug_box(
-            cursor_pos[cindex].position.x + text_position.x + 1.0f,
-            text_position.y - 3.0f, 
-            1.0f, 
-            font_info.max_height, 
-            (vec4){1.0f, 1.0f, 1.0f, 1.0f});
+        Quad_2D cursor_quad = quad_new_clipped((vec2){cursor_pos[cindex].position.x + text_position.x + 1.0f,text_position.y - 3.0f},
+            1.0f, font_info.max_height, (vec4){1.0f, 1.0f, 1.0f, 1.0f}, clipping);
+        renderer_imm_quad(&cursor_quad);
 
         // Render Selection box if one exists
         if(*selection_distance != 0) {
@@ -291,12 +284,13 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
                 selection_width = cursor_pos[sindex].position.x - cursor_pos[cindex].position.x;
                 min_index = cindex;
             }
-            renderer_imm_debug_box(
-                cursor_pos[min_index].position.x + text_position.x, 
-                text_position.y - 3.0f, 
-                selection_width, 
-                font_info.max_height, 
-                (vec4){0.84f, 0.84f, 0.84f, 0.5f});
+            vec4 sel_box_color = (vec4){0.84f, 0.84f, 0.84f, 0.5f};
+            Quad_2D select_box_quad = quad_new((vec2){cursor_pos[min_index].position.x + text_position.x, text_position.y - 3.0f}, selection_width, font_info.max_height, (vec4){0.84f, 0.84f, 0.84f, 0.2f});
+            Quad_2D select_box_quad_clipped = quad_new_clipped((vec2){cursor_pos[min_index].position.x + text_position.x, text_position.y - 3.0f}, selection_width, font_info.max_height, (vec4){0.84f, 0.84f, 0.84f, 0.2f}, clipping);
+            renderer_imm_quad(&select_box_quad_clipped);
+            r32 border_width[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+            vec4 colors[] = {sel_box_color, sel_box_color, sel_box_color, sel_box_color};
+            renderer_imm_border_clipped(&select_box_quad, border_width, colors, clipping);
         }
     }
 

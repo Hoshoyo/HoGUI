@@ -205,10 +205,145 @@ renderer_imm_flush(u32 font_id)
 }
 
 void
+renderer_imm_border_clipped(Quad_2D* q, r32 border_width[4], vec4 color[4], Clipping_Rect clipping) {
+	r32 width = q->vertices[1].position.x - q->vertices[0].position.x;
+	r32 height = q->vertices[2].position.y - q->vertices[0].position.y;
+	vec2 position = (vec2) { q->vertices[0].position.x, q->vertices[0].position.y };
+
+	q->vertices[0].clipping_box = clipping;
+	q->vertices[1].clipping_box = clipping;
+	q->vertices[2].clipping_box = clipping;
+	q->vertices[3].clipping_box = clipping;
+
+	q->vertices[0].texture_alpha = 1.0f;
+	q->vertices[1].texture_alpha = 1.0f;
+	q->vertices[2].texture_alpha = 1.0f;
+	q->vertices[3].texture_alpha = 1.0f;
+
+	q->vertices[0].mask = 1.0f;
+	q->vertices[1].mask = 1.0f;
+	q->vertices[2].mask = 1.0f;
+	q->vertices[3].mask = 1.0f;
+
+	q->vertices[0].color = color[0];
+	q->vertices[1].color = color[0];
+	q->vertices[2].color = color[0];
+	q->vertices[3].color = color[0];
+
+	// left
+	q->vertices[0].position = (vec3) { position.x, position.y, 0.0f };
+	q->vertices[1].position = (vec3) { position.x + border_width[0], position.y + border_width[0], 0.0f };
+	q->vertices[2].position = (vec3) { position.x, position.y + height, 0.0f };
+	q->vertices[3].position = (vec3) { position.x + border_width[0], position.y + height - border_width[0], 0.0f };
+	renderer_imm_quad(q);
+
+	q->vertices[0].color = color[1];
+	q->vertices[1].color = color[1];
+	q->vertices[2].color = color[1];
+	q->vertices[3].color = color[1];
+
+	// right
+	q->vertices[0].position = (vec3) { position.x + width - border_width[1], position.y + border_width[1], 0.0f };
+	q->vertices[1].position = (vec3) { position.x + width, position.y, 0.0f };
+	q->vertices[2].position = (vec3) { position.x + width - border_width[1], position.y + height - border_width[1], 0.0f };
+	q->vertices[3].position = (vec3) { position.x + width, position.y + height, 0.0f };
+	renderer_imm_quad(q);
+
+	q->vertices[0].color = color[2];
+	q->vertices[1].color = color[2];
+	q->vertices[2].color = color[2];
+	q->vertices[3].color = color[2];
+
+	// bottom
+	q->vertices[0].position = (vec3) { position.x, position.y, 0.0f };
+	q->vertices[1].position = (vec3) { position.x + width, position.y, 0.0f };
+	q->vertices[2].position = (vec3) { position.x + border_width[3], position.y + border_width[3], 0.0f };
+	q->vertices[3].position = (vec3) { position.x + width - border_width[3], position.y + border_width[3], 0.0f };
+	renderer_imm_quad(q);
+
+	q->vertices[0].color = color[3];
+	q->vertices[1].color = color[3];
+	q->vertices[2].color = color[3];
+	q->vertices[3].color = color[3];
+
+	// top
+	q->vertices[0].position = (vec3) { position.x + border_width[2], position.y + height - border_width[2], 0.0f };
+	q->vertices[1].position = (vec3) { position.x + width - border_width[2], position.y + height - border_width[2], 0.0f };
+	q->vertices[2].position = (vec3) { position.x, position.y + height, 0.0f };
+	q->vertices[3].position = (vec3) { position.x + width, position.y + height, 0.0f };
+	renderer_imm_quad(q);
+}
+
+void
 renderer_imm_border(Quad_2D* q, r32 border_width[4], vec4 color[4]) {
 	r32 width = q->vertices[1].position.x - q->vertices[0].position.x;
 	r32 height = q->vertices[2].position.y - q->vertices[0].position.y;
 	vec2 position = (vec2) { q->vertices[0].position.x, q->vertices[0].position.y };
+
+	q->vertices[0].texture_alpha = 1.0f;
+	q->vertices[1].texture_alpha = 1.0f;
+	q->vertices[2].texture_alpha = 1.0f;
+	q->vertices[3].texture_alpha = 1.0f;
+
+	q->vertices[0].mask = 1.0f;
+	q->vertices[1].mask = 1.0f;
+	q->vertices[2].mask = 1.0f;
+	q->vertices[3].mask = 1.0f;
+
+	q->vertices[0].color = color[0];
+	q->vertices[1].color = color[0];
+	q->vertices[2].color = color[0];
+	q->vertices[3].color = color[0];
+
+	// left
+	q->vertices[0].position = (vec3) { position.x, position.y, 0.0f };
+	q->vertices[1].position = (vec3) { position.x + border_width[0], position.y + border_width[0], 0.0f };
+	q->vertices[2].position = (vec3) { position.x, position.y + height, 0.0f };
+	q->vertices[3].position = (vec3) { position.x + border_width[0], position.y + height - border_width[0], 0.0f };
+	renderer_imm_quad(q);
+
+	q->vertices[0].color = color[1];
+	q->vertices[1].color = color[1];
+	q->vertices[2].color = color[1];
+	q->vertices[3].color = color[1];
+
+	// right
+	q->vertices[0].position = (vec3) { position.x + width - border_width[1], position.y + border_width[1], 0.0f };
+	q->vertices[1].position = (vec3) { position.x + width, position.y, 0.0f };
+	q->vertices[2].position = (vec3) { position.x + width - border_width[1], position.y + height - border_width[1], 0.0f };
+	q->vertices[3].position = (vec3) { position.x + width, position.y + height, 0.0f };
+	renderer_imm_quad(q);
+
+	q->vertices[0].color = color[2];
+	q->vertices[1].color = color[2];
+	q->vertices[2].color = color[2];
+	q->vertices[3].color = color[2];
+
+	// bottom
+	q->vertices[0].position = (vec3) { position.x, position.y, 0.0f };
+	q->vertices[1].position = (vec3) { position.x + width, position.y, 0.0f };
+	q->vertices[2].position = (vec3) { position.x + border_width[3], position.y + border_width[3], 0.0f };
+	q->vertices[3].position = (vec3) { position.x + width - border_width[3], position.y + border_width[3], 0.0f };
+	renderer_imm_quad(q);
+
+	q->vertices[0].color = color[3];
+	q->vertices[1].color = color[3];
+	q->vertices[2].color = color[3];
+	q->vertices[3].color = color[3];
+
+	// top
+	q->vertices[0].position = (vec3) { position.x + border_width[2], position.y + height - border_width[2], 0.0f };
+	q->vertices[1].position = (vec3) { position.x + width - border_width[2], position.y + height - border_width[2], 0.0f };
+	q->vertices[2].position = (vec3) { position.x, position.y + height, 0.0f };
+	q->vertices[3].position = (vec3) { position.x + width, position.y + height, 0.0f };
+	renderer_imm_quad(q);
+}
+
+void
+renderer_imm_outside_border(Quad_2D* q, r32 border_width[4], vec4 color[4]) {
+	r32 width = q->vertices[1].position.x - q->vertices[0].position.x + border_width[0] + border_width[1];
+	r32 height = q->vertices[2].position.y - q->vertices[0].position.y + border_width[2] + border_width[3];
+	vec2 position = (vec2) { q->vertices[0].position.x - border_width[0], q->vertices[0].position.y - border_width[3]};
 
 	q->vertices[0].texture_alpha = 1.0f;
 	q->vertices[1].texture_alpha = 1.0f;

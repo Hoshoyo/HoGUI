@@ -58,7 +58,7 @@ int main() {
 	HG_Context ctx = {0};
 
 	bool running = true;
-	char buffer[16];
+	char buffer[256];
 	int length = 0;
 	int cursor_index = 0;
 	int selection_distance = 0;
@@ -77,7 +77,7 @@ int main() {
 		if(hg_do_button(&ctx, 1, "HelloWWWWWWWWWWWMMMMM")) {
 			printf("Hello\n");
 		}
-		hg_do_input(&ctx, 2, buffer, 16, &length, &cursor_index, &selection_distance);
+		hg_do_input(&ctx, 2, buffer, 256, &length, &cursor_index, &selection_distance);
 
 		hg_end_frame(&ctx);
 
