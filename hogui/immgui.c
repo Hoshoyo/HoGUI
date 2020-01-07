@@ -38,7 +38,26 @@ void hg_end_frame(HG_Context* ctx) {
     ctx->flags = 0;
 }
 
-bool hg_do_button(HG_Context* ctx, int id, const char* text) {
+// Layout
+static bool hg_layout_button_top_down(HG_Context* ctx, vec2* position, r32 *width, r32* height) {
+    if(*height == 0.0f) {
+        // default height is 30 px
+        *height = 30.0f;
+    }
+
+    position->x = ctx->current_frame.x;
+    position->y = ctx->current_frame.y + ctx->current_frame.height - *height;
+    *width = ctx->current_frame.width;
+
+    // update current frame
+    if(ctx->current_frame_set) {
+        ctx->current_frame.height -= (*height);
+    }
+
+    return true;
+}
+
+bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length) {
     bool result = false;
     if(active(ctx, id)) {
         if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
@@ -51,9 +70,10 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text) {
         }
     }
 
-    r32 width = 100.0f;
+    r32 width = 0.0f;
     r32 height = 25.0f;
-    vec2 position = (vec2){10.0f, 10.0f};
+    vec2 position = (vec2){0.0f, 0.0f};
+    hg_layout_button_top_down(ctx, &position, &width, &height);
 
     u32 flags = 0;
     if(input_inside(input_mouse_position(), (vec4){position.x, position.y, width, height})) {
@@ -77,10 +97,11 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text) {
 
     extern Font_Info font_info;
 
-    Text_Render_Info info = text_prerender(&font_info, "Hello", sizeof("Hello")-1, 0, 0);
+    int length_text = strlen(text);
+    Text_Render_Info info = text_prerender(&font_info, text, text_length, 0, 0);
     vec2 text_position = (vec2){position.x + (width - info.width) / 2.0f, position.y + (height - info.height) / 2.0f };
     
-    text_render(&font_info, "Hello", sizeof("Hello")-1, text_position, font_render_no_clipping());
+    text_render(&font_info, text, text_length, text_position, font_render_no_clipping());
 
     return result;
 }
@@ -278,9 +299,13 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
         }
     }
 
-    vec2 position = (vec2){200, 10};
-    r32 width = 200.0f;
+    vec2 position = (vec2){0, 0};
+    r32 width = 0.0f;
     r32 height = 28.0f;
+    hg_layout_button_top_down(ctx, &position, &width, &height);
+    width -= 4.0f;
+    position.x += 2.0f;
+    height -= 2.0f;
 
     if(input_inside(input_mouse_position(), (vec4){position.x, position.y, width, height})) {
         set_hot(ctx, id);
@@ -355,7 +380,19 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
     return result;
 }
 
+// TODO(psv): columns
 void hg_window_begin(HG_Context* ctx, int id, vec2 position, r32 width, r32 height, const char* name) {
     Quad_2D q = quad_new(position, width, height, (vec4){0.5f, 0.5f, 0.5f, 1.0f});
     renderer_imm_quad(&q);
+
+    vec4 white = (vec4){1.0f, 1.0f, 1.0f, 1.0f};
+    r32 border_width[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    vec4 color[] = {white, white, white, white};
+    renderer_imm_outside_border(&q, border_width, color);
+
+    ctx->current_frame.x = position.x;
+    ctx->current_frame.y = position.y;
+    ctx->current_frame.width = width;
+    ctx->current_frame.height = height;
+    ctx->current_frame_set = true;
 }

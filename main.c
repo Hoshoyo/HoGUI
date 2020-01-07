@@ -74,12 +74,15 @@ int main() {
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		hg_window_begin(&ctx, 3, (vec2){0,0}, 300, 200, "Foo");
+		hg_window_begin(&ctx, 3, (vec2){300,200}, 300, 200, "Foo");
 
-		if(hg_do_button(&ctx, 1, "HelloWWWWWWWWWWWMMMMM")) {
+		if(hg_do_button(&ctx, 1, "Hello World", sizeof("Hello World") -1)) {
 			printf("Hello\n");
 		}
 		hg_do_input(&ctx, 2, buffer, 256, &length, &cursor_index, &selection_distance);
+		hg_do_input(&ctx, 3, buffer, 256, &length, &cursor_index, &selection_distance);
+		hg_do_input(&ctx, 4, buffer, 256, &length, &cursor_index, &selection_distance);
+		hg_do_input(&ctx, 5, buffer, 256, &length, &cursor_index, &selection_distance);
 
 		hg_end_frame(&ctx);
 
