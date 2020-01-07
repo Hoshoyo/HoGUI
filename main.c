@@ -74,7 +74,16 @@ int main() {
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		hg_window_begin(&ctx, 3, (vec2){300,200}, 300, 200, "Foo");
+		vec4 colors[4] = {
+			(vec4){0.0f, 0.0f, 0.0f, 1.0f},
+			(vec4){0.0f, 0.0f, 0.0f, 1.0f},
+			(vec4){0.4f, 0.4f, 0.4f, 1.0f},
+			(vec4){0.4f, 0.4f, 0.4f, 1.0f},
+		};
+		Quad_2D qq = quad_new_clipped_gradient((vec2){0,0}, 300, 300, colors, clipping_rect_new(0,0, 10000.0f, 10000.0f));
+		renderer_imm_quad(&qq);
+
+		hg_window_begin(&ctx, 0, (vec2){300,200}, 300, 200, "Foo", 2);
 
 		if(hg_do_button(&ctx, 1, "Hello World", sizeof("Hello World") -1)) {
 			printf("Hello\n");
@@ -83,6 +92,12 @@ int main() {
 		hg_do_input(&ctx, 3, buffer, 256, &length, &cursor_index, &selection_distance);
 		hg_do_input(&ctx, 4, buffer, 256, &length, &cursor_index, &selection_distance);
 		hg_do_input(&ctx, 5, buffer, 256, &length, &cursor_index, &selection_distance);
+		hg_window_next_column(&ctx);
+		hg_do_input(&ctx, 6, buffer, 256, &length, &cursor_index, &selection_distance);
+		hg_do_input(&ctx, 7, buffer, 256, &length, &cursor_index, &selection_distance);
+		hg_do_input(&ctx, 8, buffer, 256, &length, &cursor_index, &selection_distance);
+		hg_do_input(&ctx, 9, buffer, 256, &length, &cursor_index, &selection_distance);
+		hg_do_input(&ctx, 10, buffer, 256, &length, &cursor_index, &selection_distance);
 
 		hg_end_frame(&ctx);
 

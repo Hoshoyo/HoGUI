@@ -37,7 +37,9 @@ int  renderer_imm_debug_text_clipped(Font_Info* font_info, vec2 position, Clippi
 // Quad_2D functions
 Quad_2D quad_new(vec2 position, r32 width, r32 height, vec4 color);
 Quad_2D quad_new_clipped(vec2 position, r32 width, r32 height, vec4 color, Clipping_Rect rect);
+Quad_2D quad_new_clipped_gradient(vec2 position, r32 width, r32 height, vec4 color[4], Clipping_Rect rect);
 
 // Clipping_Rect functions
+Clipping_Rect clipping_rect_new_from_quad(Quad_2D* q);
 Clipping_Rect clipping_rect_new(r32 x, r32 y, r32 width, r32 height);
 Clipping_Rect clipping_rect_merge(Clipping_Rect a, Clipping_Rect b);

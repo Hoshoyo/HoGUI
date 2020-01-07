@@ -45,9 +45,18 @@ static bool hg_layout_button_top_down(HG_Context* ctx, vec2* position, r32 *widt
         *height = 30.0f;
     }
 
-    position->x = ctx->current_frame.x;
+    if(ctx->current_frame.height < *height) {
+        return false;
+    }
+
+    s32 current_column = ctx->current_frame.current_column;
+    s32 vertical_column_count = ctx->current_frame.vertical_column_count;
+
+    r32 column_width = ctx->current_frame.width / (r32)ctx->current_frame.vertical_column_count;
+
+    position->x = ctx->current_frame.x + ((r32)current_column * column_width);
     position->y = ctx->current_frame.y + ctx->current_frame.height - *height;
-    *width = ctx->current_frame.width;
+    *width = column_width;
 
     // update current frame
     if(ctx->current_frame_set) {
@@ -70,6 +79,7 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length) {
         }
     }
 
+    // This is calculated automatically by the layout algorithm
     r32 width = 0.0f;
     r32 height = 25.0f;
     vec2 position = (vec2){0.0f, 0.0f};
@@ -89,6 +99,7 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length) {
     } else {
         button_quad = quad_new(position, width, height, (vec4){0.7f, 0.3f, 0.3f, 1.0f});
     }
+    Clipping_Rect clipping = clipping_rect_new_from_quad(&button_quad);
     renderer_imm_quad(&button_quad);
 
     r32 button_border_width[] = {2.0f, 2.0f, 2.0f, 2.0f};
@@ -101,7 +112,7 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length) {
     Text_Render_Info info = text_prerender(&font_info, text, text_length, 0, 0);
     vec2 text_position = (vec2){position.x + (width - info.width) / 2.0f, position.y + (height - info.height) / 2.0f };
     
-    text_render(&font_info, text, text_length, text_position, font_render_no_clipping());
+    text_render(&font_info, text, text_length, text_position, clipping);
 
     return result;
 }
@@ -380,8 +391,7 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
     return result;
 }
 
-// TODO(psv): columns
-void hg_window_begin(HG_Context* ctx, int id, vec2 position, r32 width, r32 height, const char* name) {
+void hg_window_begin(HG_Context* ctx, int id, vec2 position, r32 width, r32 height, const char* name, s32 vertical_column_count) {
     Quad_2D q = quad_new(position, width, height, (vec4){0.5f, 0.5f, 0.5f, 1.0f});
     renderer_imm_quad(&q);
 
@@ -394,5 +404,21 @@ void hg_window_begin(HG_Context* ctx, int id, vec2 position, r32 width, r32 heig
     ctx->current_frame.y = position.y;
     ctx->current_frame.width = width;
     ctx->current_frame.height = height;
+    ctx->current_frame.starting_width = width;
+    ctx->current_frame.starting_height = height;
     ctx->current_frame_set = true;
+    ctx->current_frame.vertical_column_count = vertical_column_count;
+    ctx->current_frame.current_column = 0;
+}
+
+void hg_window_next_column(HG_Context* ctx) {
+    ctx->current_frame.current_column = (ctx->current_frame.current_column + 1) % ctx->current_frame.vertical_column_count;
+    ctx->current_frame.height = ctx->current_frame.starting_height;
+}
+
+void hg_window_previous_column(HG_Context* ctx) {
+    ctx->current_frame.current_column -= 1;
+    if(ctx->current_frame.current_column == 0)
+        ctx->current_frame.current_column = ctx->current_frame.vertical_column_count - 1;
+    ctx->current_frame.height = ctx->current_frame.starting_height;
 }

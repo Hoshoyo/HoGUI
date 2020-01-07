@@ -405,6 +405,18 @@ renderer_imm_outside_border(Quad_2D* q, r32 border_width[4], vec4 color[4]) {
 }
 
 Quad_2D
+quad_new_clipped_gradient(vec2 position, r32 width, r32 height, vec4 color[4], Clipping_Rect rect) {
+	Quad_2D q =
+	{
+		(Vertex_3D) { (vec3) { position.x, position.y, 0 }, 1.0f, (vec2) { 0.0f, 0.0f }, color[0], 1.0f, rect },
+		(Vertex_3D) { (vec3) { position.x + width, position.y, 0}, 1.0f, (vec2) { 1.0f, 0.0f }, color[1], 1.0f, rect },
+		(Vertex_3D) { (vec3) { position.x, position.y + height, 0 }, 1.0f, (vec2) { 0.0f, 1.0f }, color[2], 1.0f, rect },
+		(Vertex_3D) { (vec3) { position.x + width, position.y + height, 0 }, 1.0f, (vec2) { 1.0f, 1.0f }, color[3], 1.0f, rect }
+	};
+	return q;
+}
+
+Quad_2D
 quad_new_clipped(vec2 position, r32 width, r32 height, vec4 color, Clipping_Rect rect) {
 	Quad_2D q =
 	{
@@ -449,6 +461,17 @@ renderer_imm_debug_line(vec2 start, vec2 end, vec4 color) {
 	}
 	};
 	renderer_imm_quad(&q);
+}
+
+Clipping_Rect
+clipping_rect_new_from_quad(Quad_2D* q) {
+	Clipping_Rect result = {0};
+	result.x = q->vertices[0].position.x;
+	result.y = q->vertices[0].position.y;
+	result.z = q->vertices[3].position.x - result.x;
+	result.w = q->vertices[3].position.y - result.y;
+
+	return result;
 }
 
 Clipping_Rect
