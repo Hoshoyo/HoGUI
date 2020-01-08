@@ -58,15 +58,18 @@ int main() {
 	HG_Context ctx = {0};
 
 	bool running = true;
-	char buffer[256];
-	int length = 0;
-	int cursor_index = 0;
-	int selection_distance = 0;
+	char buffer[3][256];
+	int length[3] = {0};
+	int cursor_index[3] = {0};
+	int selection_distance[3] = {0};
+
+	bool active_entities_window = true;
+	int cc = 1;
+
     while (!glfwWindowShouldClose(window) && running) {
 		glfwPollEvents();
 
 		input_immgui(window);
-
 		int width, height;
 		window_get_size(&width, &height);
 
@@ -74,33 +77,18 @@ int main() {
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		vec4 colors[4] = {
-			(vec4){0.0f, 0.0f, 0.0f, 1.0f},
-			(vec4){0.0f, 0.0f, 0.0f, 1.0f},
-			(vec4){0.4f, 0.4f, 0.4f, 1.0f},
-			(vec4){0.4f, 0.4f, 0.4f, 1.0f},
-		};
-		Quad_2D qq = quad_new_clipped_gradient((vec2){0,0}, 300, 300, colors, clipping_rect_new(0,0, 10000.0f, 10000.0f));
-		renderer_imm_quad(&qq);
-
-		hg_window_begin(&ctx, 0, (vec2){300,200}, 300, 200, "Foo", 2);
-
-		if(hg_do_button(&ctx, 1, "Hello World", sizeof("Hello World") -1)) {
-			printf("Hello\n");
+		hg_window_begin(&ctx, 200, (vec2){0,0}, 100, 500, "Foo", 1);
+		if(hg_do_button(&ctx, 100, "Toggle", sizeof("Toggle") - 1)) {
+			//active_entities_window = !active_entities_window;
+			cc = ((cc + 1) % 3) + 1;
 		}
-		hg_do_input(&ctx, 2, buffer, 256, &length, &cursor_index, &selection_distance);
-		hg_do_input(&ctx, 3, buffer, 256, &length, &cursor_index, &selection_distance);
-		hg_do_input(&ctx, 4, buffer, 256, &length, &cursor_index, &selection_distance);
-		hg_do_input(&ctx, 5, buffer, 256, &length, &cursor_index, &selection_distance);
-		hg_window_next_column(&ctx);
-		hg_do_input(&ctx, 6, buffer, 256, &length, &cursor_index, &selection_distance);
-		hg_do_input(&ctx, 7, buffer, 256, &length, &cursor_index, &selection_distance);
-		hg_do_input(&ctx, 8, buffer, 256, &length, &cursor_index, &selection_distance);
-		hg_do_input(&ctx, 9, buffer, 256, &length, &cursor_index, &selection_distance);
-		hg_do_input(&ctx, 10, buffer, 256, &length, &cursor_index, &selection_distance);
-
-		hg_end_frame(&ctx);
-
+		
+		hg_window_begin(&ctx, 200, (vec2){300,200}, 300, 200, "Foo", cc);
+		if(active_entities_window)
+			hg_do_input(&ctx, 2103, buffer[0], 256, &length[0], &cursor_index[0], &selection_distance[0]);
+		hg_do_input(&ctx, 2104, buffer[1], 256, &length[1], &cursor_index[1], &selection_distance[1]);
+		hg_do_input(&ctx, 2105, buffer[2], 256, &length[2], &cursor_index[2], &selection_distance[2]);
+	
 		renderer_imm_enable_blending();
 		glDisable(GL_DEPTH_TEST);
 		renderer_imm_flush(font_info.atlas_full_id);

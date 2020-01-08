@@ -2,6 +2,8 @@
 #include "../renderer/renderer_imm.h"
 #include "immgui_input.h"
 
+#include "colors.h"
+
 const u32 IMMCTX_HOT_SET = (1 << 0);
 const u32 IMMCTX_ACTIVE_SET = (1 << 0);
 
@@ -36,6 +38,15 @@ void hg_end_frame(HG_Context* ctx) {
         reset_hot(ctx);
 
     ctx->flags = 0;
+}
+
+static vec4 color_from_hex(u32 value) {
+    return (vec4){
+        (r32)((value & 0xff0000) >> 16) / 255.0f,
+        (r32)((value & 0xff00) >> 8) / 255.0f,
+        (r32)((value & 0xff)) / 255.0f,
+        1.0f
+    };
 }
 
 // Layout
@@ -88,6 +99,8 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length) {
     u32 flags = 0;
     if(input_inside(input_mouse_position(), (vec4){position.x, position.y, width, height})) {
         set_hot(ctx, id);
+    } else if(hot(ctx, id)) {
+        reset_hot(ctx);
     }
 
     // Draw
@@ -215,6 +228,10 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
                     }
                     *cursor_index = 0;
                 } break;
+                case GLFW_KEY_DOWN:
+                case GLFW_KEY_UP:
+                    // ignore these
+                    break;
                 case GLFW_KEY_LEFT: {
                     if(!(mods & GLFW_MOD_SHIFT)) {
                         if(*selection_distance > 0) {
@@ -320,6 +337,8 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
 
     if(input_inside(input_mouse_position(), (vec4){position.x, position.y, width, height})) {
         set_hot(ctx, id);
+    } else if(hot(ctx, id)) {
+        reset_hot(ctx);
     }
 
     // -------------------------------------------
@@ -392,13 +411,34 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
 }
 
 void hg_window_begin(HG_Context* ctx, int id, vec2 position, r32 width, r32 height, const char* name, s32 vertical_column_count) {
-    Quad_2D q = quad_new(position, width, height, (vec4){0.5f, 0.5f, 0.5f, 1.0f});
+    vec4 header_clipping = (vec4){position.x, position.y + height, width, 20.0f};
+
+    if(active(ctx, id)) {
+        
+    } else if(hot(ctx, id)) {
+        header_color.r -= 0.1f;
+    }
+
+    if(input_inside(input_mouse_position(), header_clipping)) {
+        set_hot(ctx, id);
+    }
+
+    Quad_2D q = quad_new(position, width, height, color_from_hex(pallete1_1));
     renderer_imm_quad(&q);
 
-    vec4 white = (vec4){1.0f, 1.0f, 1.0f, 1.0f};
-    r32 border_width[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    vec4 color[] = {white, white, white, white};
+    r32 border_width[] = {1.0f, 1.0f, 0.0f, 1.0f};
+    vec4 color_border = color_from_hex(pallete1_3);
+    vec4 color[] = {color_border, color_border, color_border, color_border};
     renderer_imm_outside_border(&q, border_width, color);
+
+    vec4 header_color = color_from_hex(pallete1_2);
+    if(hot(ctx, id)) {
+        header_color.r -= 0.1f;
+    }
+    Quad_2D header = quad_new((vec2){position.x, position.y + height}, width, 20.0f, header_color);
+    renderer_imm_quad(&header);
+    r32 header_border_width[] = {1.0f, 1.0f, 1.0f, 0.0f};
+    renderer_imm_outside_border(&header, header_border_width, color);
 
     ctx->current_frame.x = position.x;
     ctx->current_frame.y = position.y;
