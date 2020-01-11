@@ -61,10 +61,10 @@ int main() {
 	ctx.last_hot = -1;
 
 	bool running = true;
-	char buffer[3][256];
-	int length[3] = {0};
-	int cursor_index[3] = {0};
-	int selection_distance[3] = {0};
+	char buffer[10][256];
+	int length[10] = {0};
+	int cursor_index[10] = {0};
+	int selection_distance[10] = {0};
 
 	vec2 w1_pos = (vec2){0,0};
 	vec2 w2_pos = (vec2){300,200};
@@ -90,10 +90,16 @@ int main() {
 			if(hg_do_button(&ctx, 100, "Hello", sizeof("Hello") - 1)) {
 				printf("hello\n");
 			}
-			hg_window_begin(&ctx, 201, &w2_pos, 300, 200, "Foo", 1);
+			hg_window_begin(&ctx, 201, &w2_pos, 300, 210, "Foo", 2);
 			if(hg_do_button(&ctx, 101, "World", sizeof("World") - 1)) {
 				printf("world\n");
 			}
+			for(int i = 0; i < 7; ++i) {
+				if(hg_do_input(&ctx, 400+i, buffer[i], 256, &length[i], &cursor_index[i], &selection_distance[i])) {
+					printf("Input box %d just went inactive\n", 400 + i);
+				}
+			}
+
 			hg_do_slider(&ctx, 300, &value, 0, 10);
 		}
 	

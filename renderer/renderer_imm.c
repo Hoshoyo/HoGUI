@@ -275,6 +275,13 @@ renderer_imm_border_clipped(Quad_2D* q, r32 border_width[4], vec4 color[4], Clip
 }
 
 void
+renderer_imm_border_clipped_simple(Quad_2D q, r32 border_width, vec4 color, Clipping_Rect clipping)  {
+	vec4 col[] = {color, color, color, color};
+	r32 bw[] = {border_width, border_width, border_width, border_width};
+	renderer_imm_border_clipped(&q, bw, col, clipping);
+}
+
+void
 renderer_imm_border(Quad_2D* q, r32 border_width[4], vec4 color[4]) {
 	r32 width = q->vertices[1].position.x - q->vertices[0].position.x;
 	r32 height = q->vertices[2].position.y - q->vertices[0].position.y;
@@ -402,6 +409,18 @@ renderer_imm_outside_border(Quad_2D* q, r32 border_width[4], vec4 color[4]) {
 	q->vertices[2].position = (vec3) { position.x, position.y + height, 0.0f };
 	q->vertices[3].position = (vec3) { position.x + width, position.y + height, 0.0f };
 	renderer_imm_quad(q);
+}
+
+void
+renderer_imm_outside_border_v1(Quad_2D q, r32 border_width, vec4 color[4]) {
+	r32 bw[] = {border_width, border_width, border_width, border_width};
+	renderer_imm_outside_border(&q, bw, color);
+}
+void
+renderer_imm_outside_border_v2(Quad_2D q, r32 border_width, vec4 color) {
+	r32 bw[] = {border_width, border_width, border_width, border_width};
+	vec4 col[] = {color, color, color, color};
+	renderer_imm_outside_border(&q, bw, col);
 }
 
 Quad_2D

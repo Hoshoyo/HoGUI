@@ -38,6 +38,12 @@ typedef enum {
     HG_LIST,
 } HG_Type;
 
+typedef enum {
+    HG_NONE = 0,
+    HG_ACTIVE,
+    HG_HOT,
+} HG_Mode;
+
 typedef struct {
     vec2 position;
     r32 width;
