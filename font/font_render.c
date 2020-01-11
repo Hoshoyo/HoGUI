@@ -325,7 +325,7 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 }
 
 int
-text_render(Font_Info* font_info, const char* text, int length, vec2 position, Clipping_Rect clipping) {
+text_render(Font_Info* font_info, const char* text, int length, vec2 position, Clipping_Rect clipping, vec4 color) {
 	Text_Render_Info result = {0};
 	Character* characters = font_info->characters;
 
@@ -362,7 +362,6 @@ text_render(Font_Info* font_info, const char* text, int length, vec2 position, C
 
 #if 1
 			if (unicode != '\n' && unicode != '\t') {
-				vec4 color = (vec4){1.0f, 1.0f, 1.0f, 1.0f};
 				Quad_2D q = {
 					(Vertex_3D) { (vec3) {roundf(xpos),     roundf(ypos + h), 0.0f}, 1.0f, characters[unicode].botl, color, 0.0f, clipping },
 					(Vertex_3D) { (vec3) {roundf(xpos + w), roundf(ypos + h), 0.0f}, 1.0f, characters[unicode].botr, color, 0.0f, clipping },

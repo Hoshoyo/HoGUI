@@ -87,20 +87,35 @@ int main() {
 			hg_start(&ctx);
 
 			hg_window_begin(&ctx, 200, &w1_pos, 500, 500, "Foo", 1);
-			if(hg_do_button(&ctx, 100, "Hello", sizeof("Hello") - 1)) {
+			if(hg_do_button(&ctx, 1, "Hello", sizeof("Hello") - 1, true)) {
 				printf("hello\n");
 			}
-			hg_window_begin(&ctx, 201, &w2_pos, 300, 210, "Foo", 2);
-			if(hg_do_button(&ctx, 101, "World", sizeof("World") - 1)) {
-				printf("world\n");
-			}
-			for(int i = 0; i < 7; ++i) {
+			hg_window_begin(&ctx, 201, &w2_pos, 300, 210, "Foo", 1);
+			
+			for(int i = 0; i < 10; ++i) {
+				#if 0
 				if(hg_do_input(&ctx, 400+i, buffer[i], 256, &length[i], &cursor_index[i], &selection_distance[i])) {
 					printf("Input box %d just went inactive\n", 400 + i);
 				}
+				#endif
+				#if 0
+				if(hg_do_button(&ctx, 100 + i, "World", sizeof("World") - 1)) {
+					printf("world\n");
+				}
+				#endif
+				#if 0
+				if(hg_do_label(&ctx, 100 + i, "World", sizeof("World") - 1, (vec4){1.0f, 1.0f, 1.0f, 1.0f})) {
+					//printf("world\n");
+				}
+				#endif
+				#if 1
+				if(hg_do_button(&ctx, 100 + i, "World", sizeof("World") - 1, i % 2 == 0)) {
+					printf("world\n");
+				}
+				#endif
 			}
 
-			hg_do_slider(&ctx, 300, &value, 0, 10);
+			//hg_do_slider(&ctx, 300, &value, 0, 10);
 		}
 	
 		renderer_imm_enable_blending();

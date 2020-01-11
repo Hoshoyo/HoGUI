@@ -202,6 +202,7 @@ input_box_render_auto_layout(HG_Context* ctx, int id, char* buffer, int buffer_l
     vec4 color_cursor = (vec4){1.0f, 1.0f, 1.0f, 1.0f};
     vec4 color_sel_box = (vec4){0.84f, 0.84f, 0.84f, 0.5f};
     vec4 color_sel_box_border = (vec4){0.84f, 0.84f, 0.84f, 0.2f};
+    vec4 color_text = (vec4){1.0f, 1.0f, 1.0f, 1.0f};
 
     // Positioning metrics
     vec2          position = (vec2){0, 0};
@@ -253,7 +254,7 @@ input_box_render_auto_layout(HG_Context* ctx, int id, char* buffer, int buffer_l
     }
 
     // Render text in the calculated position
-    text_render(&font_info, buffer, buffer_length, text_position, input_clipping);
+    text_render(&font_info, buffer, buffer_length, text_position, input_clipping, color_text);
 
     if(active(ctx, id)) {
         // Render cursor
