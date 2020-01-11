@@ -5,7 +5,7 @@
 typedef struct {
     int owner;
     int item;
-    int index;
+    int index; // represents which of all the hot items is the last (in front)
 } uid;
 
 typedef struct {
@@ -24,7 +24,10 @@ typedef struct {
 typedef struct {
     uid hot;
     uid active;
+    uid previous_active;
     u32 flags;
+
+    int last_hot;
 
     bool current_frame_set;
     HG_Frame current_frame;
@@ -48,9 +51,12 @@ typedef struct {
     };
 } HG_State;
 
-void hg_window_begin(HG_Context* ctx, int id, vec2 position, r32 width, r32 height, const char* name, s32 vertical_column_count);
+void hg_start(HG_Context* ctx);
+void hg_end(HG_Context* ctx);
+
+void hg_window_begin(HG_Context* ctx, int id, vec2* position, r32 width, r32 height, const char* name, s32 vertical_column_count);
 void hg_window_next_column(HG_Context* ctx);
 void hg_window_previous_column(HG_Context* ctx);
 bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length);
 bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, int* buffer_length, int* cursor_index, int* selection_distance);
-void hg_end_frame();
+void hg_do_slider(HG_Context* ctx, int id, r32* value, r32 min, r32 max);

@@ -22,6 +22,8 @@ int  input_mouse_button_went_up(int button, int* x, int* y);
 bool input_next_key_pressed(u32* key, s32* mods);
 vec2 input_mouse_position();
 bool input_inside(vec2 p, vec4 clipping);
+vec2 input_mouse_button_down_pos(int button);
+vec2 input_mouse_button_up_pos(int button);
 
 // Clipboard
 const char* input_get_clipboard();

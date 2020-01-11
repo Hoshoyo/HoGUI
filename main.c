@@ -56,6 +56,9 @@ int main() {
 	glClearColor(0.2f, 0.2f, 0.23f, 1.0f);
 
 	HG_Context ctx = {0};
+	ctx.active.owner = -1;
+	ctx.hot.owner = -1;
+	ctx.last_hot = -1;
 
 	bool running = true;
 	char buffer[3][256];
@@ -63,31 +66,36 @@ int main() {
 	int cursor_index[3] = {0};
 	int selection_distance[3] = {0};
 
-	bool active_entities_window = true;
-	int cc = 1;
+	vec2 w1_pos = (vec2){0,0};
+	vec2 w2_pos = (vec2){300,200};
+
+	r32 value = 5.0f;
 
     while (!glfwWindowShouldClose(window) && running) {
 		glfwPollEvents();
-
-		input_immgui(window);
 		int width, height;
 		window_get_size(&width, &height);
 
+		input_immgui(window);
 		input_immgui_set_window_size(width, height);
+
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		hg_window_begin(&ctx, 200, (vec2){0,0}, 100, 500, "Foo", 1);
-		if(hg_do_button(&ctx, 100, "Toggle", sizeof("Toggle") - 1)) {
-			//active_entities_window = !active_entities_window;
-			cc = ((cc + 1) % 3) + 1;
+		{
+			hg_end(&ctx);
+			hg_start(&ctx);
+
+			hg_window_begin(&ctx, 200, &w1_pos, 500, 500, "Foo", 1);
+			if(hg_do_button(&ctx, 100, "Hello", sizeof("Hello") - 1)) {
+				printf("hello\n");
+			}
+			hg_window_begin(&ctx, 201, &w2_pos, 300, 200, "Foo", 1);
+			if(hg_do_button(&ctx, 101, "World", sizeof("World") - 1)) {
+				printf("world\n");
+			}
+			hg_do_slider(&ctx, 300, &value, 0, 10);
 		}
-		
-		hg_window_begin(&ctx, 200, (vec2){300,200}, 300, 200, "Foo", cc);
-		if(active_entities_window)
-			hg_do_input(&ctx, 2103, buffer[0], 256, &length[0], &cursor_index[0], &selection_distance[0]);
-		hg_do_input(&ctx, 2104, buffer[1], 256, &length[1], &cursor_index[1], &selection_distance[1]);
-		hg_do_input(&ctx, 2105, buffer[2], 256, &length[2], &cursor_index[2], &selection_distance[2]);
 	
 		renderer_imm_enable_blending();
 		glDisable(GL_DEPTH_TEST);

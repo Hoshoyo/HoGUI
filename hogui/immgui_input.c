@@ -12,9 +12,19 @@ typedef struct {
 
 typedef struct {
     int x, y;
+    int went_down;
+} Mouse_Button_Down_Event;
+
+typedef struct {
+    int x, y;
+    int went_up;
+} Mouse_Button_Up_Event;
+
+typedef struct {
+    int x, y;
     bool button_state[MOUSE_BUTTON_COUNT];
-    int button_went_down[MOUSE_BUTTON_COUNT];
-    int button_went_up[MOUSE_BUTTON_COUNT];
+    Mouse_Button_Down_Event button_went_down[MOUSE_BUTTON_COUNT];
+    Mouse_Button_Up_Event button_went_up[MOUSE_BUTTON_COUNT];
 } Input_Mouse;
 
 typedef struct {
@@ -48,8 +58,10 @@ void input_immgui(GLFWwindow* window) {
     memset(input_state.keyboard.key_went_down, 0, sizeof(input_state.keyboard.key_went_down));
     memset(input_state.keyboard.key_went_up, 0, sizeof(input_state.keyboard.key_went_up));
 
-    memset(input_state.mouse.button_went_down, 0, sizeof(input_state.mouse.button_went_down));
-    memset(input_state.mouse.button_went_up, 0, sizeof(input_state.mouse.button_went_up));
+    for(int i = 0; i < MOUSE_BUTTON_COUNT; ++i) {
+        input_state.mouse.button_went_down[i].went_down = 0;
+        input_state.mouse.button_went_up[i].went_up = 0;
+    }
 
     input_state.keyboard.key_press_count = 0;
     input_state.keyboard.key_press_index = 0;
@@ -100,11 +112,15 @@ void input_immgui(GLFWwindow* window) {
             switch(e.mouse.type) {
                 case MOUSE_BUTTON_PRESS: {
                     input_state.mouse.button_state[e.mouse.button] = true;
-                    input_state.mouse.button_went_down[e.mouse.button] += 1;
+                    input_state.mouse.button_went_down[e.mouse.button].went_down += 1;
+                    input_state.mouse.button_went_down[e.mouse.button].x = e.mouse.x;
+                    input_state.mouse.button_went_down[e.mouse.button].y = input_state.window.height - e.mouse.y;
                 }break;
                 case MOUSE_BUTTON_RELEASE: {
                     input_state.mouse.button_state[e.mouse.button] = false;
-                    input_state.mouse.button_went_up[e.mouse.button] += 1;
+                    input_state.mouse.button_went_up[e.mouse.button].went_up += 1;
+                    input_state.mouse.button_went_up[e.mouse.button].x = e.mouse.x;
+                    input_state.mouse.button_went_up[e.mouse.button].y = input_state.window.height - e.mouse.y;
                 }break;
                 case MOUSE_POSITION: {
                     input_state.mouse.x = (int)e.mouse.x;
@@ -156,20 +172,35 @@ int input_key_went_up(u32 key) {
 }
 int input_mouse_button_went_down(int button, int* x, int* y) {
     if(button >= 0 && button < MOUSE_BUTTON_COUNT) {
-        if(x) *x = input_state.mouse.x;
-        if(y) *y = input_state.mouse.y;
-        return input_state.mouse.button_went_down[button];
+        if(x) *x = input_state.mouse.button_went_down[button].x;
+        if(y) *y = input_state.mouse.button_went_down[button].y;
+        return input_state.mouse.button_went_down[button].went_down;
     }
     return 0;
 }
 int input_mouse_button_went_up(int button, int* x, int* y) {
     if(button >= 0 && button < MOUSE_BUTTON_COUNT) {
-        if(x) *x = input_state.mouse.x;
-        if(y) *y = input_state.mouse.y;
-        return input_state.mouse.button_went_up[button];
+        if(x) *x = input_state.mouse.button_went_up[button].x;
+        if(y) *y = input_state.mouse.button_went_up[button].y;
+        return input_state.mouse.button_went_up[button].went_up;
     }
     return 0;
 }
+
+vec2 input_mouse_button_down_pos(int button) {
+    if(button >= 0 && button < MOUSE_BUTTON_COUNT) {
+        return (vec2){input_state.mouse.button_went_down[button].x, input_state.mouse.button_went_down[button].y};
+    }
+    return (vec2){0,0};
+}
+
+vec2 input_mouse_button_up_pos(int button) {
+    if(button >= 0 && button < MOUSE_BUTTON_COUNT) {
+        return (vec2){input_state.mouse.button_went_up[button].x, input_state.mouse.button_went_up[button].y};
+    }
+    return (vec2){0,0};
+}
+
 vec2 input_mouse_position() {
     return (vec2){(r32)input_state.mouse.x, (r32)input_state.mouse.y};
 }

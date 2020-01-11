@@ -7,6 +7,17 @@
 const u32 IMMCTX_HOT_SET = (1 << 0);
 const u32 IMMCTX_ACTIVE_SET = (1 << 0);
 
+void hg_start(HG_Context* ctx) {
+    if(ctx->flags & IMMCTX_HOT_SET)
+        ctx->hot.owner = ctx->last_hot;
+    ctx->last_hot = -1;
+}
+void hg_end(HG_Context* ctx) {
+}
+
+static void hg_update(HG_Context* ctx) {
+}
+
 static bool active(HG_Context* ctx, int id) {
     return (ctx->active.owner == id);
 }
@@ -20,12 +31,13 @@ static void reset_active(HG_Context* ctx) {
 }
 
 static void set_active(HG_Context* ctx, int id) {
+    ctx->previous_active = ctx->active;
     ctx->active.owner = id;
     ctx->flags |= IMMCTX_ACTIVE_SET;
 }
 
 static void set_hot(HG_Context* ctx, int id) {
-    ctx->hot.owner = id;
+    ctx->last_hot = id;
     ctx->flags |= IMMCTX_HOT_SET;
 }
 
@@ -56,9 +68,9 @@ static bool hg_layout_button_top_down(HG_Context* ctx, vec2* position, r32 *widt
         *height = 30.0f;
     }
 
-    if(ctx->current_frame.height < *height) {
-        return false;
-    }
+    //if(ctx->current_frame.height < *height) {
+    //    return false;
+    //}
 
     s32 current_column = ctx->current_frame.current_column;
     s32 vertical_column_count = ctx->current_frame.vertical_column_count;
@@ -78,6 +90,7 @@ static bool hg_layout_button_top_down(HG_Context* ctx, vec2* position, r32 *widt
 }
 
 bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length) {
+    hg_update(ctx);
     bool result = false;
     if(active(ctx, id)) {
         if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
@@ -99,8 +112,6 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length) {
     u32 flags = 0;
     if(input_inside(input_mouse_position(), (vec4){position.x, position.y, width, height})) {
         set_hot(ctx, id);
-    } else if(hot(ctx, id)) {
-        reset_hot(ctx);
     }
 
     // Draw
@@ -110,7 +121,7 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length) {
     } else if(hot(ctx, id)) {
         button_quad = quad_new(position, width, height, (vec4){1.0f, 0.4f, 0.4f, 1.0f});
     } else {
-        button_quad = quad_new(position, width, height, (vec4){0.7f, 0.3f, 0.3f, 1.0f});
+        button_quad = quad_new(position, width, height, color_from_hex(pallete1_3));
     }
     Clipping_Rect clipping = clipping_rect_new_from_quad(&button_quad);
     renderer_imm_quad(&button_quad);
@@ -206,6 +217,7 @@ static int insert_text(const char* clip, int clipboard_length, char* buffer, int
 
 // selection_distance == 0 means no selection is active
 bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, int* buffer_length, int* cursor_index, int* selection_distance) {
+    hg_update(ctx);
     bool result = true;
     bool reset_selection = true;
 
@@ -352,7 +364,7 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
     }
     Quad_2D q = quad_new(position, width, height, color);
     renderer_imm_quad(&q);
-    r32 input_border_width[] = {2.0f, 2.0f, 2.0f, 2.0f};
+    r32 input_border_width[] = {1.0f, 1.0f, 1.0f, 1.0f};
     vec4 input_border_color[] = {(vec4){0.2f, 0.2f, 0.2f, 1.0f}, (vec4){0.6f, 0.6f, 0.6f, 1.0f}, (vec4){0.5f, 0.5f, 0.5f, 1.0f}, (vec4){0.2f, 0.2f, 0.2f, 1.0f}};
     renderer_imm_outside_border(&q, input_border_width, input_border_color);
 
@@ -410,15 +422,52 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
     return result;
 }
 
-void hg_window_begin(HG_Context* ctx, int id, vec2 position, r32 width, r32 height, const char* name, s32 vertical_column_count) {
-    vec4 header_clipping = (vec4){position.x, position.y + height, width, 20.0f};
+static void snap_position(vec2* position, s32 snap_distance) {
+    // snap
+    r32 diffx = (r32)((s32)position->x % snap_distance);
+    r32 diffy = (r32)((s32)position->y % snap_distance);
+    if(diffx != 0.0f) {
+        if(diffx / 2.0f < snap_distance / 2.0f) {
+            position->x -= diffx;
+        } else {
+            position->x += diffx;
+        }
+    }
+    if(diffy != 0.0f) {
+        if(diffy / 2.0f < snap_distance / 2.0f) {
+            position->y -= diffy;
+        } else {
+            position->y += diffy;
+        }
+    }
+}
+
+void hg_window_begin(HG_Context* ctx, int id, vec2* in_position, r32 width, r32 height, const char* name, s32 vertical_column_count) {
+    hg_update(ctx);
+    vec2 position = *in_position;
+    vec2 mouse_position = input_mouse_position();
+    bool is_hot = hot(ctx, id);
 
     if(active(ctx, id)) {
+        vec2 down_position = input_mouse_button_down_pos(MOUSE_LEFT_BUTTON);
+        position.x += (mouse_position.x - down_position.x);
+        position.y += (mouse_position.y - down_position.y);
         
-    } else if(hot(ctx, id)) {
-        header_color.r -= 0.1f;
+        if(input_is_key_down(GLFW_KEY_LEFT_SHIFT))
+            snap_position(&position, 30.0f);
+
+        if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
+            in_position->x = position.x;
+            in_position->y = position.y;
+            set_active(ctx, ctx->previous_active.owner);
+        }
+    } else if(is_hot) {
+        if(input_mouse_button_went_down(MOUSE_LEFT_BUTTON, 0, 0)) {
+            set_active(ctx, id);
+        }
     }
 
+    vec4 header_clipping = (vec4){position.x, position.y + height, width, 20.0f};
     if(input_inside(input_mouse_position(), header_clipping)) {
         set_hot(ctx, id);
     }
@@ -432,8 +481,8 @@ void hg_window_begin(HG_Context* ctx, int id, vec2 position, r32 width, r32 heig
     renderer_imm_outside_border(&q, border_width, color);
 
     vec4 header_color = color_from_hex(pallete1_2);
-    if(hot(ctx, id)) {
-        header_color.r -= 0.1f;
+    if(is_hot) {
+        header_color.r -= 0.3f;
     }
     Quad_2D header = quad_new((vec2){position.x, position.y + height}, width, 20.0f, header_color);
     renderer_imm_quad(&header);
@@ -461,4 +510,45 @@ void hg_window_previous_column(HG_Context* ctx) {
     if(ctx->current_frame.current_column == 0)
         ctx->current_frame.current_column = ctx->current_frame.vertical_column_count - 1;
     ctx->current_frame.height = ctx->current_frame.starting_height;
+}
+
+
+// -----------------------------------------
+// -------------- Slider -------------------
+// -----------------------------------------
+
+r32 lerp(r32 v0, r32 v1, r32 t) {
+    return (1 - t) * v0 + t * v1;
+}
+
+void hg_do_slider(HG_Context* ctx, int id, r32* value, r32 min, r32 max) {
+    hg_update(ctx);
+    vec2 position = {0};
+    r32 width = 0.0f, height = 20.0f;
+    hg_layout_button_top_down(ctx, &position, &width, &height);
+
+    position.x += 8.0f;
+    position.y += 9.0f;
+    width -= 16.0f;
+    Quad_2D base = quad_new(position, width, 2.0f, color_from_hex(pallete1_2));
+    renderer_imm_quad(&base);
+
+    r32 range = max - min;
+    r32 percentage = (*value - min) / range;
+
+    vec2 handle_pos = position;
+    handle_pos.y -= (height / 2.0f);
+    handle_pos.x += lerp(0, width - 4.0f, percentage);
+
+    Quad_2D handle = quad_new(handle_pos, 8.0f, height, color_from_hex(pallete1_3));
+    renderer_imm_quad(&handle);
+
+    r32 border_width[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    vec4 border_color[] = {
+        color_from_hex(pallete1_1),
+        color_from_hex(pallete1_1),
+        color_from_hex(pallete1_1),
+        color_from_hex(pallete1_1),
+    };
+    renderer_imm_border(&handle, border_width, border_color);
 }
