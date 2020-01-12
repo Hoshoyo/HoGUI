@@ -24,6 +24,7 @@ vec2 input_mouse_position();
 bool input_inside(vec2 p, vec4 clipping);
 vec2 input_mouse_button_down_pos(int button);
 vec2 input_mouse_button_up_pos(int button);
+vec2 input_get_window_size();
 
 // Clipboard
 const char* input_get_clipboard();

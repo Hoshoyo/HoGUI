@@ -52,6 +52,10 @@ void input_immgui_set_window_size(int width, int height) {
     input_state.window.height = height;
 }
 
+vec2 input_get_window_size() {
+    return (vec2){input_state.window.width, input_state.window.height};
+}
+
 void input_immgui(GLFWwindow* window) {
     input_state.glfw_window = window;
     // Reset input events

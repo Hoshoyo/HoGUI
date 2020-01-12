@@ -17,6 +17,8 @@
 
 Font_Info font_info = {0};
 
+static HG_Context ctx = {0};
+
 int main() {
     if (!glfwInit()) {
 		printf("Could not initialize GLFW\n");
@@ -55,7 +57,6 @@ int main() {
 
 	glClearColor(0.2f, 0.2f, 0.23f, 1.0f);
 
-	HG_Context ctx = {0};
 	ctx.active.owner = -1;
 	ctx.hot.owner = -1;
 	ctx.last_hot = -1;
@@ -69,7 +70,7 @@ int main() {
 	vec2 w1_pos = (vec2){0,0};
 	vec2 w2_pos = (vec2){300,200};
 
-	r32 value = 5.0f;
+	r32 value[10] = {0.0f};
 
     while (!glfwWindowShouldClose(window) && running) {
 		glfwPollEvents();
@@ -83,14 +84,14 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		{
-			hg_end(&ctx);
 			hg_start(&ctx);
 
 			hg_window_begin(&ctx, 200, &w1_pos, 500, 500, "Foo", 1);
 			if(hg_do_button(&ctx, 1, "Hello", sizeof("Hello") - 1, true)) {
 				printf("hello\n");
 			}
-			hg_window_begin(&ctx, 201, &w2_pos, 300, 210, "Foo", 1);
+#if 1
+			hg_window_begin(&ctx, 201, &w2_pos, 300, 210, "Foo", 2);
 			
 			for(int i = 0; i < 10; ++i) {
 				#if 0
@@ -108,14 +109,21 @@ int main() {
 					//printf("world\n");
 				}
 				#endif
-				#if 1
+				#if 0
 				if(hg_do_button(&ctx, 100 + i, "World", sizeof("World") - 1, i % 2 == 0)) {
 					printf("world\n");
 				}
 				#endif
+				hg_do_slider(&ctx, 300 + i, &value[i], -10, 10);
+				
 			}
-
-			//hg_do_slider(&ctx, 300, &value, 0, 10);
+			hg_window_next_column(&ctx);
+			for(int i = 0; i < 10; ++i) {
+				char buffer[32] = {0};
+				int len = sprintf(buffer, "%f", value[i]);
+				hg_do_label(&ctx, 400 + i, buffer, len, (vec4){1.0f, 1.0f, 1.0f, 1.0f});
+			}
+#endif
 		}
 	
 		renderer_imm_enable_blending();

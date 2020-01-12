@@ -60,7 +60,7 @@ window_render(HG_Context* ctx, bool is_hot, r32 header_height, int id, vec2 posi
 }
 
 void hg_window_begin(HG_Context* ctx, int id, vec2* in_position, r32 width, r32 height, const char* name, s32 vertical_column_count) {
-    hg_update(ctx);
+    //hg_update(ctx);
 
     // Positioning parameters
     vec2 position = *in_position;
@@ -106,4 +106,6 @@ void hg_window_begin(HG_Context* ctx, int id, vec2* in_position, r32 width, r32 
     ctx->current_frame_set = true;
     ctx->current_frame.vertical_column_count = vertical_column_count;
     ctx->current_frame.current_column = 0;
+
+    //renderer_imm_debug_box(position.x, position.y, width, height, (vec4){1.0f, 1.0f, 0.0f, 1.0f});
 }

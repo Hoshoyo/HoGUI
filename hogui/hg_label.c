@@ -46,6 +46,8 @@ label_render_auto_layout(HG_Context* ctx, int id, const char* text, int text_len
     
     text_render(&font_info, text, text_length, text_position, label_clipping, color_text);
 
+    //renderer_imm_debug_box(label_clipping.x, label_clipping.y, label_clipping.z, label_clipping.w, (vec4){1.0f, 0.0f, 0.0f, 1.0f});
+
     return label_clipping;
 }
 

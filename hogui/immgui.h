@@ -58,7 +58,7 @@ typedef struct {
 } HG_State;
 
 void hg_start(HG_Context* ctx);
-void hg_end(HG_Context* ctx);
+//void hg_end(HG_Context* ctx);
 
 void hg_window_begin(HG_Context* ctx, int id, vec2* position, r32 width, r32 height, const char* name, s32 vertical_column_count);
 void hg_window_next_column(HG_Context* ctx);
