@@ -173,10 +173,16 @@ hg_do_container(HG_Context* ctx, int id, r32 width, r32 height, r32* total_width
     // reserve space for it.
     if(total_height && *total_height > height) {
         width -= vertical_scroll_size;
+    } else {
+        vertical_scroll_size = 0.0f;
     }
     if(total_width && *total_width > width) {
         height -= horizontal_scroll_size;
+    } else {
+        horizontal_scroll_size = 0.0f;
     }
+    if(total_width && *total_width == 0.0f) *total_width = width;
+    if(total_height && *total_height == 0.0f) *total_height = height;
 
     clipping_position = (vec2){ctx->current_frame.x, ctx->current_frame.y + ctx->current_frame.height - height};
     // Update current context clipping

@@ -76,7 +76,7 @@ int main() {
 	r32 value[10] = {0.0f};
 
 	r32 h = 1000.0f;
-	r32 w = 1000.0f;
+	r32 w = 0.0f;
 	r32 vperc = 0.0f;
 	r32 hperc = 0.0f;
 
@@ -95,10 +95,10 @@ int main() {
 			hg_start(&ctx);
 
 			hg_window_begin(&ctx, 200, &w1_pos, 500, 500, "Foo", 1);
+			hg_do_container(&ctx, 1111, 0, 1.0f, &w, &h, &vperc, &hperc);
 			if(hg_do_button(&ctx, 1, "Hello", sizeof("Hello") - 1, true)) {
 				printf("hello\n");
 			}
-			hg_do_container(&ctx, 1111, 0, 1.0f, &w, &h, &vperc, &hperc);
 			for(int i = 0; i < 30; ++i) {
 				char buffer[32] = {0};
 				int l = sprintf(buffer, "World %d", i);
