@@ -5,9 +5,13 @@
 #include "colors.h"
 
 void hg_start(HG_Context* ctx) {
-    if(ctx->flags & IMMCTX_HOT_SET)
-        ctx->hot.owner = ctx->last_hot;
-    ctx->last_hot = -1;
+    if(ctx->flags & IMMCTX_HOT_SET) {
+        ctx->hot.owner = ctx->last_hot.owner;
+        ctx->hot.item = ctx->last_hot.item;
+    }
+    ctx->last_hot.owner = -1;
+    ctx->last_hot.item = -1;
+    ctx->inside_container = false;
 }
 
 // Layout
@@ -30,14 +34,18 @@ bool hg_layout_rectangle_top_down(HG_Context* ctx, vec2* position, r32 *width, r
     position->y = ctx->current_frame.y + ctx->current_frame.height - *height;
     *width = column_width;
 
-    clipping->x = ctx->current_frame.x;
-    clipping->y = ctx->current_frame.y;
-    clipping->z = ctx->current_frame.starting_width;
-    clipping->w = ctx->current_frame.starting_height;
-
     // update current frame
     if(ctx->current_frame_set) {
         ctx->current_frame.height -= (*height);
+    }
+
+    if(ctx->inside_container) {
+        *clipping = ctx->current_frame.clipping;
+    } else {
+        clipping->x = ctx->current_frame.x;
+        clipping->y = ctx->current_frame.y;
+        clipping->z = ctx->current_frame.starting_width;
+        clipping->w = ctx->current_frame.starting_height;
     }
 
     return true;

@@ -4,10 +4,6 @@
 #include "hg_internal.h"
 #include "colors.h"
 
-static r32 lerp(r32 v0, r32 v1, r32 t) {
-    return (1 - t) * v0 + t * v1;
-}
-
 static Clipping_Rect
 slider_render_auto_layout(HG_Context* ctx, int id, r32 value, r32 min, r32 max) {
     // Design parameters
@@ -72,7 +68,7 @@ hg_do_slider(HG_Context* ctx, int id, r32* value, r32 min, r32 max) {
         }
     } else if(hot(ctx, id)) {
         if(input_mouse_button_went_down(MOUSE_LEFT_BUTTON, 0, 0)) {
-            set_active(ctx, id);
+            set_active(ctx, id, 0);
         }
     }
     
@@ -90,6 +86,6 @@ hg_do_slider(HG_Context* ctx, int id, r32* value, r32 min, r32 max) {
     //renderer_imm_debug_box(slider_clipping.x, slider_clipping.y, slider_clipping.z, slider_clipping.w, (vec4){1.0f, 1.0f, 0.0f, 1.0f});
 
     if(input_inside(input_mouse_position(), slider_clipping)) {
-        set_hot(ctx, id);
+        set_hot(ctx, id, 0);
     }
 }

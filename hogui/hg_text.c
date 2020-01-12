@@ -60,7 +60,7 @@ bool hg_do_text(HG_Context* ctx, int id, const char* text, int text_length, vec4
     Clipping_Rect label_clipping = text_render_auto_layout(ctx, id, text, text_length, color);
 
     if(result = input_inside(input_mouse_position(), label_clipping)) {
-        set_hot(ctx, id);
+        set_hot(ctx, id, 0);
     }
 
     return result;

@@ -292,14 +292,14 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
         }
     } else if(hot(ctx, id)) {
         if(input_mouse_button_went_down(MOUSE_LEFT_BUTTON, 0, 0)) {
-            set_active(ctx,id);
+            set_active(ctx,id, 0);
         }
     }
 
     Clipping_Rect clipping = input_box_render_auto_layout(ctx, id, buffer, *buffer_length, *selection_distance, *cursor_index);
 
     if(input_inside(input_mouse_position(), clipping)) {
-        set_hot(ctx, id);
+        set_hot(ctx, id, 0);
     } else if(hot(ctx, id)) {
         reset_hot(ctx);
     }

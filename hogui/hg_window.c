@@ -61,6 +61,7 @@ window_render(HG_Context* ctx, bool is_hot, r32 header_height, int id, vec2 posi
 
 void hg_window_begin(HG_Context* ctx, int id, vec2* in_position, r32 width, r32 height, const char* name, s32 vertical_column_count) {
     //hg_update(ctx);
+    ctx->inside_container = false;
 
     // Positioning parameters
     vec2 position = *in_position;
@@ -81,17 +82,17 @@ void hg_window_begin(HG_Context* ctx, int id, vec2* in_position, r32 width, r32 
         if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
             in_position->x = position.x;
             in_position->y = position.y;
-            set_active(ctx, ctx->previous_active.owner);
+            set_active(ctx, ctx->previous_active.owner, 0);
         }
     } else if(is_hot) {
         if(input_mouse_button_went_down(MOUSE_LEFT_BUTTON, 0, 0)) {
-            set_active(ctx, id);
+            set_active(ctx, id, 0);
         }
     }
 
     vec4 header_clipping = (vec4){position.x, position.y + height, width, header_height};
     if(input_inside(input_mouse_position(), header_clipping)) {
-        set_hot(ctx, id);
+        set_hot(ctx, id, 0);
     }
 
     // Draw window
@@ -108,4 +109,64 @@ void hg_window_begin(HG_Context* ctx, int id, vec2* in_position, r32 width, r32 
     ctx->current_frame.current_column = 0;
 
     //renderer_imm_debug_box(position.x, position.y, width, height, (vec4){1.0f, 1.0f, 0.0f, 1.0f});
+}
+
+
+
+
+
+
+
+/*
+    CONTAINER
+*/
+
+static const int HG_SCROLL_VERTICAL = 1;
+static const int HG_SCROLL_HORIZONTAL = 2;
+
+void 
+hg_do_container(HG_Context* ctx, int id, r32 width, r32 height, r32* scroll_width, r32* scroll_height, r32* scroll_percentage) {
+    vec2 clipping_position = {0};
+    Clipping_Rect clipping = {0};
+
+    // Setup percentages width and height
+    width = ctx->current_frame.width * ((width == 0) ? 1.0f : width);
+    height = ctx->current_frame.height * ((height == 0) ? 1.0f : height);
+
+    if(scroll_height && *scroll_height > height) {
+        width -= 10.0f;
+    }
+
+    clipping_position = (vec2){ctx->current_frame.x, ctx->current_frame.y + ctx->current_frame.height - height};
+
+    // Update current context clipping
+    ctx->current_frame.clipping = (vec4){clipping_position.x, clipping_position.y, width, height};
+    ctx->inside_container = true;
+    renderer_imm_debug_box(clipping_position.x, clipping_position.y, width, height, (vec4){1.0f, 1.0f, 0.0f, 1.0f});
+
+
+    // Update current context user space
+    ctx->current_frame.width = width;
+    ctx->current_frame.height = *scroll_height;
+    vec2 user_position = (vec2){clipping_position.x, clipping_position.y - (*scroll_height - height)};
+    r32 sheight = (height * height) / *scroll_height;
+
+    r32 percentage = (scroll_percentage) ? *scroll_percentage : 0.0f;
+    r32 clip_y = lerp(clipping_position.y, clipping_position.y + height - sheight, percentage);
+    r32 user_y = lerp(user_position.y, user_position.y + *scroll_height - height, percentage);
+
+    renderer_imm_debug_box(user_position.x, user_y, width, *scroll_height, (vec4){1.0f, 0.0f, 0.0f, 1.0f});
+    if(hot_item(ctx, id, HG_SCROLL_VERTICAL)) {
+        renderer_imm_debug_box(user_position.x + width, clip_y, 10.0f, sheight, (vec4){0.0f, 1.0f, 0.0f, 1.0f});
+    } else {
+        renderer_imm_debug_box(user_position.x + width, clip_y, 10.0f, sheight, (vec4){1.0f, 0.0f, 0.0f, 1.0f});
+    }
+    
+    vec4 scroll_box = (vec4) {user_position.x + width, clip_y, 10.0f, sheight};
+
+    ctx->current_frame.y = user_y;
+
+    if(input_inside(input_mouse_position(), scroll_box)) {
+        set_hot(ctx, id, HG_SCROLL_VERTICAL);
+    }
 }

@@ -14,6 +14,8 @@ typedef struct {
     r32 width;
     r32 height;
 
+    vec4 clipping;
+
     r32 starting_width;
     r32 starting_height;
 
@@ -27,9 +29,10 @@ typedef struct {
     uid previous_active;
     u32 flags;
 
-    int last_hot;
+    uid last_hot;
 
     bool current_frame_set;
+    bool inside_container;
     HG_Frame current_frame;
 } HG_Context;
 
@@ -73,3 +76,5 @@ void hg_do_slider(HG_Context* ctx, int id, r32* value, r32 min, r32 max);
 bool hg_do_label(HG_Context* ctx, int id, const char* text, int text_length, vec4 color);
 
 bool hg_do_text(HG_Context* ctx, int id, const char* text, int text_length, vec4 color);
+
+void hg_do_container(HG_Context* ctx, int id, r32 width, r32 height, r32* scroll_width, r32* scroll_height, r32* scroll_percentage);

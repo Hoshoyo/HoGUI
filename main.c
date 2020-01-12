@@ -58,8 +58,11 @@ int main() {
 	glClearColor(0.2f, 0.2f, 0.23f, 1.0f);
 
 	ctx.active.owner = -1;
+	ctx.active.item = -1;
 	ctx.hot.owner = -1;
-	ctx.last_hot = -1;
+	ctx.last_hot.owner = -1;
+	ctx.last_hot.item = -1;
+	ctx.inside_container = false;
 
 	bool running = true;
 	char buffer[10][256];
@@ -71,6 +74,9 @@ int main() {
 	vec2 w2_pos = (vec2){300,200};
 
 	r32 value[10] = {0.0f};
+
+	r32 h = 1000.0f;
+	r32 perc = 0.0f;
 
     while (!glfwWindowShouldClose(window) && running) {
 		glfwPollEvents();
@@ -90,10 +96,17 @@ int main() {
 			if(hg_do_button(&ctx, 1, "Hello", sizeof("Hello") - 1, true)) {
 				printf("hello\n");
 			}
-			hg_do_text(&ctx, 3, 
-				"Hello World\nNew line test!!\ntabbed\ntabbed\ntabbed\ntabbed\ntabbed\ntabbed", 
-				sizeof "Hello World\nNew line test!!\ntabbed\ntabbed\ntabbed\ntabbed\ntabbed\ntabbed" - 1, (vec4){1.0f, 1.0f, 1.0f, 1.0f});
-#if 1
+			hg_do_container(&ctx, 1111, 0, .8, 0, &h, &perc);
+			for(int i = 0; i < 30; ++i) {
+				if(hg_do_label(&ctx, 100 + i, "World", sizeof("World") - 1, (vec4){1.0f, 1.0f, 1.0f, 1.0f})) {
+					//printf("world\n");
+				}
+			}
+
+			//hg_do_text(&ctx, 3, 
+			//	"Hello World\nNew line test!!\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed", 
+			//	sizeof "Hello World\nNew line test!!\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed" - 1, (vec4){1.0f, 1.0f, 1.0f, 1.0f});
+#if 0
 			hg_window_begin(&ctx, 201, &w2_pos, 300, 210, "Foo", 2);
 			
 			for(int i = 0; i < 10; ++i) {

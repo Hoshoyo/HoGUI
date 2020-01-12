@@ -70,14 +70,14 @@ bool hg_do_button(HG_Context* ctx, int id, const char* text, int text_length, bo
         }
     } else if(hot(ctx, id)) {
         if(input_mouse_button_went_down(MOUSE_LEFT_BUTTON, 0, 0)) {
-            set_active(ctx,id);
+            set_active(ctx,id, 0);
         }
     }
 
     Clipping_Rect button_clipping = button_render_auto_layout(ctx, id, text, text_length, enabled);
 
     if(input_inside(input_mouse_position(), button_clipping)) {
-        set_hot(ctx, id);
+        set_hot(ctx, id, 0);
     }
 
     return result;
