@@ -221,6 +221,7 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 
 	int idx = 0;
 	r32 extra_height = 0.0f;
+	r32 min_height = FLT_MAX;
 	vec2 max_position = { 0 };
 	vec2 position = (vec2){0.0f, 0.0f};
 	Clipping_Rect clipping = (Clipping_Rect) { 0, 0, FLT_MAX, FLT_MAX };
@@ -299,6 +300,9 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 			if (ypos + h > max_position.y) {
 				max_position.y = ypos + h;
 			}
+			if (ypos < min_height) {
+				min_height = ypos;
+			}
 
 			if (new_line) {
 				if(result.max_column_count > columns) {
@@ -313,7 +317,7 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 		}
 	}
 	result.width = max_position.x;
-	result.height = max_position.y;
+	result.height = max_position.y - min_height;
 
 	if (out_positions && selection_count < positions_count && out_positions[selection_count].index == idx) {
 		Text_Render_Character_Position* fill_indexed_position = out_positions + selection_count;
@@ -332,6 +336,7 @@ text_render(Font_Info* font_info, const char* text, int length, vec2 position, C
 	int idx = 0;
 	r32 extra_height = 0.0f;
 	vec2 max_position = { 0 };
+	vec2 start_position = position;
 
 	int selection_count = 0;
 
@@ -374,7 +379,7 @@ text_render(Font_Info* font_info, const char* text, int length, vec2 position, C
 #endif
 			if (new_line) {
 				position.y -= font_info->font_size;
-				position.x = 0.0f;
+				position.x = start_position.x;
 			} else {
 				position.x += characters[unicode].advance >> 6;
 			}

@@ -90,6 +90,9 @@ int main() {
 			if(hg_do_button(&ctx, 1, "Hello", sizeof("Hello") - 1, true)) {
 				printf("hello\n");
 			}
+			hg_do_text(&ctx, 3, 
+				"Hello World\nNew line test!!\ntabbed\ntabbed\ntabbed\ntabbed\ntabbed\ntabbed", 
+				sizeof "Hello World\nNew line test!!\ntabbed\ntabbed\ntabbed\ntabbed\ntabbed\ntabbed" - 1, (vec4){1.0f, 1.0f, 1.0f, 1.0f});
 #if 1
 			hg_window_begin(&ctx, 201, &w2_pos, 300, 210, "Foo", 2);
 			

@@ -71,3 +71,5 @@ bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, i
 void hg_do_slider(HG_Context* ctx, int id, r32* value, r32 min, r32 max);
 
 bool hg_do_label(HG_Context* ctx, int id, const char* text, int text_length, vec4 color);
+
+bool hg_do_text(HG_Context* ctx, int id, const char* text, int text_length, vec4 color);
