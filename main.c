@@ -76,7 +76,9 @@ int main() {
 	r32 value[10] = {0.0f};
 
 	r32 h = 1000.0f;
-	r32 perc = 0.0f;
+	r32 w = 1000.0f;
+	r32 vperc = 0.0f;
+	r32 hperc = 0.0f;
 
     while (!glfwWindowShouldClose(window) && running) {
 		glfwPollEvents();
@@ -96,9 +98,11 @@ int main() {
 			if(hg_do_button(&ctx, 1, "Hello", sizeof("Hello") - 1, true)) {
 				printf("hello\n");
 			}
-			hg_do_container(&ctx, 1111, 0, .8, 0, &h, &perc);
+			hg_do_container(&ctx, 1111, 0, 1.0f, &w, &h, &vperc, &hperc);
 			for(int i = 0; i < 30; ++i) {
-				if(hg_do_label(&ctx, 100 + i, "World", sizeof("World") - 1, (vec4){1.0f, 1.0f, 1.0f, 1.0f})) {
+				char buffer[32] = {0};
+				int l = sprintf(buffer, "World %d", i);
+				if(hg_do_label(&ctx, 100 + i, buffer, l, (vec4){1.0f, 1.0f, 1.0f, 1.0f})) {
 					//printf("world\n");
 				}
 			}

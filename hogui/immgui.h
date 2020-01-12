@@ -77,4 +77,4 @@ bool hg_do_label(HG_Context* ctx, int id, const char* text, int text_length, vec
 
 bool hg_do_text(HG_Context* ctx, int id, const char* text, int text_length, vec4 color);
 
-void hg_do_container(HG_Context* ctx, int id, r32 width, r32 height, r32* scroll_width, r32* scroll_height, r32* scroll_percentage);
+void hg_do_container(HG_Context* ctx, int id, r32 width, r32 height, r32* scroll_width, r32* scroll_height, r32* vscroll_percentage, r32* hscroll_percentage);

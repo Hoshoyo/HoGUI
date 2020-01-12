@@ -133,15 +133,6 @@ scroll_vertical_render(HG_Context* ctx, int id, r32 x, r32 y, r32 width, r32 hei
 
     Clipping_Rect clipping = {x, y, width, height};
 
-    /*
-    // Render vertical scroll bar
-    if(hot_item(ctx, id, HG_SCROLL_VERTICAL)) {
-        renderer_imm_debug_box(user_position.x + width, clip_y, vertical_scroll_width, sheight, (vec4){0.0f, 1.0f, 0.0f, 1.0f});
-    } else {
-        renderer_imm_debug_box(user_position.x + width, clip_y, vertical_scroll_width, sheight, (vec4){1.0f, 0.0f, 0.0f, 1.0f});
-    }
-    */
-
     // Render vertical scroll bar
     Quad_2D q = quad_new_clipped((vec2){x, y}, width, height, color_scroll, clipping);
     renderer_imm_quad(&q);
@@ -153,13 +144,13 @@ scroll_vertical_render(HG_Context* ctx, int id, r32 x, r32 y, r32 width, r32 hei
 }
 
 void 
-hg_do_container(HG_Context* ctx, int id, r32 width, r32 height, r32* total_width, r32* total_height, r32* scroll_percentage) {
+hg_do_container(HG_Context* ctx, int id, r32 width, r32 height, r32* total_width, r32* total_height, r32* vscroll_percentage, r32* hscroll_percentage) {
     // Positioning parameters
     vec2 clipping_position = {0};
-    r32  vertical_scroll_width = 10.0f;
+    r32  vertical_scroll_size = 10.0f;
+    r32  horizontal_scroll_size = 10.0f;
 
-
-    r32 percentage = (scroll_percentage) ? *scroll_percentage : 0.0f;
+    r32 vpercentage = (vscroll_percentage) ? *vscroll_percentage : 0.0f;
     vec2 mouse_position = input_mouse_position();
     if(active_item(ctx, id, HG_SCROLL_VERTICAL)) {
         
@@ -176,47 +167,49 @@ hg_do_container(HG_Context* ctx, int id, r32 width, r32 height, r32* total_width
     // If total height is bigger than the space we have, create a vertical scroll bar,
     // reserve space for it.
     if(total_height && *total_height > height) {
-        width -= vertical_scroll_width;
+        width -= vertical_scroll_size;
+    }
+    if(total_width && *total_width > width) {
+        height -= horizontal_scroll_size;
     }
 
     clipping_position = (vec2){ctx->current_frame.x, ctx->current_frame.y + ctx->current_frame.height - height};
-
     // Update current context clipping
     ctx->current_frame.clipping = (vec4){clipping_position.x, clipping_position.y, width, height};
     ctx->inside_container = true;
 
     // Debug render clipping area
-    //renderer_imm_debug_box(clipping_position.x, clipping_position.y, width, height, (vec4){1.0f, 1.0f, 0.0f, 1.0f});
+    renderer_imm_debug_box(clipping_position.x, clipping_position.y, width, height, (vec4){1.0f, 1.0f, 0.0f, 1.0f});    
 
     // Update current context user space
-    ctx->current_frame.width = width;
+    ctx->current_frame.width = *total_width;
     ctx->current_frame.height = *total_height;
     vec2 user_position = (vec2){clipping_position.x, clipping_position.y - (*total_height - height)};
-    r32 sheight = (height * height) / *total_height;
+    r32 vsheight = (height * height) / *total_height;
 
     if(active_item(ctx, id, HG_SCROLL_VERTICAL)) {
         vec2 down_position = input_mouse_button_down_pos(MOUSE_LEFT_BUTTON);
         r32 diff_y = (mouse_position.y - down_position.y);
-        percentage += (diff_y / (height - sheight));
-        percentage = MIN(1.0f, MAX(0.0f, percentage));
+        vpercentage += (diff_y / (height - vsheight));
+        vpercentage = MIN(1.0f, MAX(0.0f, vpercentage));
 
         if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
-            if(scroll_percentage) *scroll_percentage = percentage;
+            if(vscroll_percentage) *vscroll_percentage = vpercentage;
             reset_active(ctx);
         }
     }
 
     // Calculate the heights for both user space and the vertical scroll bar representing it
-    r32 clip_y = lerp(clipping_position.y, clipping_position.y + height - sheight, percentage);
-    r32 user_y = lerp(user_position.y, user_position.y + *total_height - height, 1.0f - percentage);
+    r32 clip_y = lerp(clipping_position.y, clipping_position.y + height - vsheight, vpercentage);
+    r32 user_y = lerp(user_position.y, user_position.y + *total_height - height, 1.0f - vpercentage);
 
     // Set the current user space context to the correct position.
     ctx->current_frame.y = user_y;
 
     // Debug user area
-    //renderer_imm_debug_box(user_position.x, user_y, width, *total_height, (vec4){1.0f, 0.0f, 0.0f, 1.0f});
+    renderer_imm_debug_box(user_position.x, user_y, *total_width, *total_height, (vec4){1.0f, 0.0f, 0.0f, 1.0f});
 
-    Clipping_Rect scroll_box = scroll_vertical_render(ctx, id, user_position.x + width, clip_y, vertical_scroll_width, sheight);
+    Clipping_Rect scroll_box = scroll_vertical_render(ctx, id, user_position.x + width, clip_y, vertical_scroll_size, vsheight);
 
     if(input_inside(input_mouse_position(), scroll_box)) {
         set_hot(ctx, id, HG_SCROLL_VERTICAL);
