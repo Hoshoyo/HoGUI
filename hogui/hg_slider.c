@@ -61,8 +61,6 @@ hg_do_slider(HG_Context* ctx, int id, r32* value, r32 min, r32 max) {
     vec2 mouse_position = input_mouse_position();
 
     if(active(ctx, id)) {
-        vec2 down_position = input_mouse_button_down_pos(MOUSE_LEFT_BUTTON);
-        vec2 diff_vec = (vec2){mouse_position.x - down_position.x, mouse_position.y - down_position.y};
         if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
             reset_active(ctx);
         }

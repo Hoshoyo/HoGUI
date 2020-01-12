@@ -8,6 +8,10 @@ static bool active(HG_Context* ctx, int id) {
     return (ctx->active.owner == id);
 }
 
+static bool active_item(HG_Context* ctx, int id, int item) {
+    return (ctx->active.owner == id && ctx->active.item == item);
+}
+
 static bool hot(HG_Context* ctx, int id) {
     return (ctx->hot.owner == id);
 }
