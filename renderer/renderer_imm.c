@@ -5,7 +5,7 @@
 #include <string.h>
 #include <float.h>
 #include <stdarg.h>
-#include "../font/ustring.h"
+#include "../ustring.h"
 
 typedef struct {
 	u32 quad_vao;
@@ -466,6 +466,17 @@ renderer_imm_debug_box(r32 x, r32 y, r32 width, r32 height, vec4 color) {
 }
 
 void
+renderer_imm_debug_clipping(vec4 clipping, vec4 color) {
+	Quad_2D q = quad_new((vec2) { clipping.x, clipping.y }, clipping.z, clipping.w, color);
+	vec4 bcolor[4];
+	bcolor[0] = color;
+	bcolor[1] = color;
+	bcolor[2] = color;
+	bcolor[3] = color;
+	renderer_imm_border(&q, (r32[4]){1.0f, 1.0f, 1.0f, 1.0f}, bcolor);
+}
+
+void
 renderer_imm_debug_line(vec2 start, vec2 end, vec4 color) {
 	vec4 clipping = (vec4) { 0, 0, FLT_MAX, FLT_MAX };
 	Quad_2D q =
@@ -510,50 +521,64 @@ clipping_rect_merge(Clipping_Rect a, Clipping_Rect b) {
 	return result;
 }
 
-int 
-renderer_imm_debug_text_clipped(Font_Info* font_info, vec2 position, Clipping_Rect clipping, char* fmt, ...) {
-	char buffer[1024] = {0};
-	va_list args;
-	va_start(args, fmt);
-	int num_written = vsprintf(buffer, fmt, args);
-	va_end(args);
+vec4 renderer_rgb_to_hsv(vec4 rgb) {
+	r32 cmax = MAX(MAX(rgb.r, rgb.g), rgb.b);
+	r32 cmin = MIN(MIN(rgb.r, rgb.g), rgb.b);
+	r32 delta = cmax - cmin;
 
-	ustring s = ustring_new_utf8(buffer);
+	r32 hue = 0.0f;
+	if(delta == 0.0f) {
+		hue = 0.0f;
+	} else if(cmax == rgb.r) {
+		r32 rem = ((rgb.g - rgb.b) / delta);
+		hue = 60.0f * (fmodf(rem, 6));
+	} else if(cmax == rgb.g) {
+		hue = 60.0f * (((rgb.b - rgb.r) / delta) + 2.0f);
+	} else {
+		hue = 60.0f * (((rgb.r - rgb.g) / delta) + 4.0f);
+	}
 
-	FRII ii = {
-        .flags = FONT_RENDER_INFO_DO_RENDER,
-        .bb = *(BBox*)&clipping,
-        .position = position,
-        .color = (vec4){1.0f, 1.0f, 1.0f, 1.0f},
-        .tab_space = 3,
-    };
+	r32 saturation = 0.0f;
+	if(cmax > 0.0f) {
+		saturation = delta / cmax;
+	}
 
-    font_render_text(font_info, &ii, s);
-    ustring_free(&s);
+	r32 value = cmax;
 
-	return num_written;
+	return (vec4){hue, saturation, value, rgb.a};
 }
 
-int 
-renderer_imm_debug_text(Font_Info* font_info, vec2 position, char* fmt, ...) {
-	char buffer[1024] = {0};
-	va_list args;
-	va_start(args, fmt);
-	int num_written = vsprintf(buffer, fmt, args);
-	va_end(args);
+vec4 renderer_hsv_to_rgb(vec4 hsv) {
+	vec4 result = {0};
+	result.a = hsv.a;
 
-	ustring s = ustring_new_utf8(buffer);
+	r32 c = hsv.z * hsv.y;
+	r32 x = c * (1.0f - fabsf(fmodf(hsv.x / 60.0f, 2) - 1.0f));
+	r32 m = hsv.z - c;
 
-	FRII ii = {
-        .flags = FONT_RENDER_INFO_DO_RENDER,
-        .bb = (BBox){0.0f, 0.0f, FLT_MAX, FLT_MAX},
-        .position = position,
-        .color = (vec4){1.0f, 1.0f, 1.0f, 1.0f},
-        .tab_space = 3,
-    };
+	r32 h = hsv.x;
+	if(h >= 0.0f && h < 60.0f) {
+		result.r = c;
+		result.g = x;
+	} else if(h < 120.0f) {
+		result.r = x;
+		result.g = c;
+	} else if(h < 180.0f) {
+		result.g = c;
+		result.b = x;
+	} else if(h < 240.0f) {
+		result.g = x;
+		result.b = c;
+	} else if(h < 300.0f) {
+		result.r = x;
+		result.b = c;
+	} else {
+		result.r = c;
+		result.b = x;
+	}
+	result.r += m;
+	result.g += m;
+	result.b += m;
 
-    font_render_text(font_info, &ii, s);
-    ustring_free(&s);
-
-	return num_written;
+	return result;
 }

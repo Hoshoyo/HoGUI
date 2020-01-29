@@ -69,3 +69,4 @@ typedef struct {
 bool event_pop(Event* out_event);
 void event_push(Event* event);
 void event_queue_clear();
+bool event_peek(Event* e, int index);

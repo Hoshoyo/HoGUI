@@ -1,4 +1,4 @@
-#include "immgui_input.h"
+#include "hg_input.h"
 #include "../event.h"
 #include <gm.h>
 #include <string.h>
@@ -25,6 +25,7 @@ typedef struct {
     bool button_state[MOUSE_BUTTON_COUNT];
     Mouse_Button_Down_Event button_went_down[MOUSE_BUTTON_COUNT];
     Mouse_Button_Up_Event button_went_up[MOUSE_BUTTON_COUNT];
+    r32 wheel;
 } Input_Mouse;
 
 typedef struct {
@@ -41,8 +42,10 @@ typedef struct {
     Input_Mouse mouse;
     Input_Keyboard keyboard;
 
+    Input_Mouse last_mouse;
+    Input_Keyboard last_keyboard;
+
     Input_Window window;
-    GLFWwindow* glfw_window;
 } Input_State;
 
 static Input_State input_state;
@@ -56,8 +59,13 @@ vec2 input_get_window_size() {
     return (vec2){input_state.window.width, input_state.window.height};
 }
 
-void input_immgui(GLFWwindow* window) {
-    input_state.glfw_window = window;
+void input_immgui(s32 window_width, s32 window_height) {
+    input_state.window.width = window_width;
+    input_state.window.height = window_height;
+
+    input_state.last_keyboard = input_state.keyboard;
+    input_state.last_mouse = input_state.mouse;
+
     // Reset input events
     memset(input_state.keyboard.key_went_down, 0, sizeof(input_state.keyboard.key_went_down));
     memset(input_state.keyboard.key_went_up, 0, sizeof(input_state.keyboard.key_went_up));
@@ -69,9 +77,12 @@ void input_immgui(GLFWwindow* window) {
 
     input_state.keyboard.key_press_count = 0;
     input_state.keyboard.key_press_index = 0;
+    input_state.mouse.wheel = 0.0f;
 
     Event e;
-    while (event_pop(&e)) {
+    int kk = 0;
+    //while (event_pop(&e)) {
+    while(event_peek(&e, kk++)) {
         if(e.type == EVENT_KEYBOARD_INPUT) {
             switch(e.keyboard.type) {
                 case KEYBOARD_KEY_REPEAT:
@@ -88,6 +99,7 @@ void input_immgui(GLFWwindow* window) {
                         case GLFW_KEY_DELETE:
                         case GLFW_KEY_END:
                         case GLFW_KEY_HOME:
+                        case GLFW_KEY_ESCAPE:
                             input_state.keyboard.key_presses_mods[input_state.keyboard.key_press_count] = e.keyboard.mods;
                             input_state.keyboard.key_presses[input_state.keyboard.key_press_count++] = e.keyboard.unicode;
                         case GLFW_KEY_C:
@@ -114,6 +126,9 @@ void input_immgui(GLFWwindow* window) {
             }
         } else if(e.type == EVENT_MOUSE_INPUT) {
             switch(e.mouse.type) {
+                case MOUSE_WHEEL: {
+                    input_state.mouse.wheel += e.mouse.wheel_value;
+                } break;
                 case MOUSE_BUTTON_PRESS: {
                     input_state.mouse.button_state[e.mouse.button] = true;
                     input_state.mouse.button_went_down[e.mouse.button].went_down += 1;
@@ -142,6 +157,7 @@ void input_immgui(GLFWwindow* window) {
             }
         }
     }
+    //event_queue_clear();
 }
 
 bool input_next_key_pressed(u32* key, s32* mods) {
@@ -191,6 +207,10 @@ int input_mouse_button_went_up(int button, int* x, int* y) {
     return 0;
 }
 
+r32 input_mouse_wheel_value() {
+    return input_state.mouse.wheel;
+}
+
 vec2 input_mouse_button_down_pos(int button) {
     if(button >= 0 && button < MOUSE_BUTTON_COUNT) {
         return (vec2){input_state.mouse.button_went_down[button].x, input_state.mouse.button_went_down[button].y};
@@ -208,23 +228,15 @@ vec2 input_mouse_button_up_pos(int button) {
 vec2 input_mouse_position() {
     return (vec2){(r32)input_state.mouse.x, (r32)input_state.mouse.y};
 }
+vec2 input_mouse_last_position() {
+    return (vec2){(r32)input_state.last_mouse.x, (r32)input_state.last_mouse.y};
+}
 
 bool input_inside(vec2 p, vec4 clipping) {
     return (
         (p.x >= clipping.x && p.x <= clipping.x + clipping.z) && 
         (p.y >= clipping.y && p.y <= clipping.y + clipping.w)
     );
-}
-
-const char* input_get_clipboard() {
-    return glfwGetClipboardString(input_state.glfw_window);
-}
-
-void input_set_clipboard(const char* text, int length) {
-    char* str = (char*)calloc(1, length + 1);
-    memcpy(str, text, length);
-    glfwSetClipboardString(input_state.glfw_window, str);
-    free(str);
 }
 
 // clipping (vec4) {x, y, width, height}

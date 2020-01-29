@@ -1,7 +1,8 @@
-#include "immgui.h"
+#include "hg_ui.h"
 #include "../renderer/renderer_imm.h"
-#include "immgui_input.h"
+#include "hg_input.h"
 #include "hg_internal.h"
+#include "../input.h"
 
 static int length_current_utf8(char* buffer) {
     int l = 1;
@@ -77,16 +78,19 @@ static int insert_text(const char* clip, int clipboard_length, char* buffer, int
     return 0;
 }
 
-static bool 
+static HG_Input_Box_Exit
 handle_input(char* buffer, int* buffer_length, int buffer_max_length, int* cursor_index, int* selection_distance) {
+    HG_Input_Box_Exit exit_mode = HG_INPUT_BOX_EXIT_NONE;
     u32 key = 0;
     s32 mods = 0;
     char utf8_key[4] = {0};
     bool reset_selection = true;
-    bool result = false;
 
     while(input_next_key_pressed(&key, &mods)) {
         switch(key) {
+            case GLFW_KEY_ESCAPE: {
+                exit_mode = HG_INPUT_BOX_EXIT_ESCAPE;
+            } break;
             case GLFW_KEY_END:{
                 if(mods & GLFW_MOD_SHIFT) {
                     *selection_distance = -(*buffer_length - *cursor_index - *selection_distance);
@@ -148,7 +152,7 @@ handle_input(char* buffer, int* buffer_length, int buffer_max_length, int* curso
                 delete_selection_backward(buffer, cursor_index, selection_distance, buffer_length);
             } break;
             case GLFW_KEY_ENTER: {
-                result = true;
+                exit_mode = HG_INPUT_BOX_EXIT_ENTER;
             } break;
             default: {
                 
@@ -190,25 +194,27 @@ handle_input(char* buffer, int* buffer_length, int buffer_max_length, int* curso
             *selection_distance = 0;
         }
     }
-    return result;
+    return exit_mode;
 }
 
 static Clipping_Rect 
-input_box_render_auto_layout(HG_Context* ctx, int id, char* buffer, int buffer_length, int selection_distance, int cursor_index) {
+input_box_render_auto_layout(HG_Context* ctx, s64 id, int item, char* buffer, int buffer_length, int selection_distance, int cursor_index) {
     // Design parameters
     vec4 color = (vec4){0.4f, 0.4f, 0.38f, 1.0f};
     vec4 color_active = (vec4){0.3f, 0.3f, 0.3f, 1.0f};
     vec4 color_hot = (vec4){0.4f, 0.4f, 0.3f, 1.0f};
     vec4 color_cursor = (vec4){1.0f, 1.0f, 1.0f, 1.0f};
     vec4 color_sel_box = (vec4){0.84f, 0.84f, 0.84f, 0.5f};
-    vec4 color_sel_box_border = (vec4){0.84f, 0.84f, 0.84f, 0.2f};
     vec4 color_text = (vec4){1.0f, 1.0f, 1.0f, 1.0f};
+    color.a = 0.5f;
+    color_active.a = 0.5f;
+    color_hot.a = 0.5f;
 
     // Positioning metrics
     vec2          position = (vec2){0, 0};
     Clipping_Rect input_clipping = {0};
     r32           width = 0.0f;
-    r32           height = 28.0f;
+    r32           height = 25.0f;
     r32           border_width = 1.0f;
 
     // Calculate the layout in the current context
@@ -220,13 +226,14 @@ input_box_render_auto_layout(HG_Context* ctx, int id, char* buffer, int buffer_l
     // Compensate for borders
     width -= (2.0f * border_width);
     position.x += border_width;
-    height -= border_width;
+    position.y += border_width;
+    height -= (2.0f * border_width);
 
     // Draw
     
-    if(active(ctx, id)) {
+    if(active_item(ctx, id, item)) {
         color = color_active;
-    } else if (hot(ctx, id)) {
+    } else if (hot_item(ctx, id, item)) {
         color = color_hot;
     }
 
@@ -245,23 +252,23 @@ input_box_render_auto_layout(HG_Context* ctx, int id, char* buffer, int buffer_l
     cursor_pos[sindex].index = cursor_index + selection_distance;
 
     // Figure out text layout from the current position
-    Text_Render_Info info = text_prerender(&font_info, buffer, buffer_length, cursor_pos, 2);
-    vec2 text_position = (vec2){position.x + 2.0f, position.y + (height - font_info.max_height) / 2.0f };
+    Text_Render_Info info = text_prerender(&ctx->font_info, buffer, buffer_length, 0, cursor_pos, 2);
+    vec2 text_position = (vec2){position.x + 2.0f, position.y + (height - ctx->font_info.max_height) / 2.0f };
 
     // If the cursor is outside the view, bring it into view
     if(cursor_pos[cindex].position.x > width) {
-        text_position.x -= (cursor_pos[cindex].position.x - width + font_info.max_width + info.width - cursor_pos[cindex].position.x);
+        text_position.x -= (cursor_pos[cindex].position.x - width + ctx->font_info.max_width + info.width - cursor_pos[cindex].position.x);
     }
 
     // Render text in the calculated position
-    text_render(&font_info, buffer, buffer_length, text_position, input_clipping, color_text);
+    text_render(&ctx->font_info, buffer, buffer_length, 0, text_position, input_clipping, color_text);
 
-    if(active(ctx, id)) {
+    if(active_item(ctx, id, item)) {
         // Render cursor
         Quad_2D cursor_quad = quad_new_clipped(
             (vec2){cursor_pos[cindex].position.x + text_position.x + 1.0f, text_position.y - 3.0f}, // position
             1.0f, // width
-            font_info.max_height, // height
+            ctx->font_info.max_height, // height
             color_cursor, input_clipping);
         renderer_imm_quad(&cursor_quad);
 
@@ -271,8 +278,8 @@ input_box_render_auto_layout(HG_Context* ctx, int id, char* buffer, int buffer_l
             int max_index = (selection_distance < 0) ? cindex : sindex;
             r32 selection_width = cursor_pos[max_index].position.x - cursor_pos[min_index].position.x;
 
-            Quad_2D select_box_quad = quad_new((vec2){cursor_pos[min_index].position.x + text_position.x, text_position.y - 3.0f}, selection_width, font_info.max_height, color_sel_box);
-            Quad_2D select_box_quad_clipped = quad_new_clipped((vec2){cursor_pos[min_index].position.x + text_position.x, text_position.y - 3.0f}, selection_width, font_info.max_height, color_sel_box, input_clipping);
+            Quad_2D select_box_quad = quad_new((vec2){cursor_pos[min_index].position.x + text_position.x, text_position.y - 3.0f}, selection_width, ctx->font_info.max_height, color_sel_box);
+            Quad_2D select_box_quad_clipped = quad_new_clipped((vec2){cursor_pos[min_index].position.x + text_position.x, text_position.y - 3.0f}, selection_width, ctx->font_info.max_height, color_sel_box, input_clipping);
             renderer_imm_quad(&select_box_quad_clipped);
             renderer_imm_border_clipped_simple(select_box_quad, 1.0f, color_sel_box, input_clipping);
         }
@@ -282,25 +289,25 @@ input_box_render_auto_layout(HG_Context* ctx, int id, char* buffer, int buffer_l
 }
 
 // selection_distance == 0 means no selection is active
-bool hg_do_input(HG_Context* ctx, int id, char* buffer, int buffer_max_length, int* buffer_length, int* cursor_index, int* selection_distance) {
+HG_Input_Box_Exit hg_do_input(HG_Context* ctx, s64 id, int item, char* buffer, int buffer_max_length, int* buffer_length, int* cursor_index, int* selection_distance) {
     hg_update(ctx);
-    bool result = false;
+    HG_Input_Box_Exit result = false;
     
-    if(active(ctx, id)) {
-        if(result = handle_input(buffer, buffer_length, buffer_max_length, cursor_index, selection_distance)) {
-            reset_active(ctx);
+    if(active_item(ctx, id, item)) {
+        if((result = handle_input(buffer, buffer_length, buffer_max_length, cursor_index, selection_distance)) != 0) {
+            hg_reset_active(ctx);
         }
-    } else if(hot(ctx, id)) {
+    } else if(hot_item(ctx, id, item)) {
         if(input_mouse_button_went_down(MOUSE_LEFT_BUTTON, 0, 0)) {
-            set_active(ctx,id, 0);
+            hg_set_active(ctx, id, item);
         }
     }
 
-    Clipping_Rect clipping = input_box_render_auto_layout(ctx, id, buffer, *buffer_length, *selection_distance, *cursor_index);
+    Clipping_Rect clipping = input_box_render_auto_layout(ctx, id, item, buffer, *buffer_length, *selection_distance, *cursor_index);
 
     if(input_inside(input_mouse_position(), clipping)) {
-        set_hot(ctx, id, 0);
-    } else if(hot(ctx, id)) {
+        set_hot(ctx, id, item);
+    } else if(hot_item(ctx, id, item)) {
         reset_hot(ctx);
     }
 

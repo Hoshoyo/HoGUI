@@ -18,10 +18,6 @@ label_render_auto_layout(HG_Context* ctx, s64 id, int item, const char* text, in
     int           align = -1; // -1 left, 0 center, 1 right
     r32           margin = 4.0f;
     
-    // Render label text, laying it out before in the center
-    Text_Render_Info info = text_prerender(&ctx->font_info, text, text_length, 0, 0, 0);
-    width = info.width + margin;
-
     hg_layout_rectangle_top_down(ctx, &position, &width, &height, &label_clipping);
 
     // Merge the clipping box of the input box with the context clipping
@@ -32,6 +28,8 @@ label_render_auto_layout(HG_Context* ctx, s64 id, int item, const char* text, in
         color_text = color_text_hot;
     }
 
+    // Render label text, laying it out before in the center
+    Text_Render_Info info = text_prerender(&ctx->font_info, text, text_length, 0, 0, 0);
     vec2 text_position = {0};
     switch(align) {
         case -1: {
@@ -53,13 +51,29 @@ label_render_auto_layout(HG_Context* ctx, s64 id, int item, const char* text, in
     return label_clipping;
 }
 
-bool hg_do_label(HG_Context* ctx, s64 id, int item, const char* text, int text_length, vec4 color) {
+r32 hg_do_label_slider(HG_Context* ctx, s64 id, int item, const char* text, int text_length, vec4 color) {
     hg_update(ctx);
-    bool result = false;
+    r32 result = 0.0f;
+
+    vec2 mouse_position = input_mouse_position();
+    vec2 mouse_last_position = input_mouse_last_position();
+
+    if(active_item(ctx, id, item)) {
+        if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
+            hg_reset_active(ctx);
+        } else {
+            r32 diff = mouse_position.x - mouse_last_position.x;
+            result = diff;
+        }
+    } else if(hot_item(ctx, id, item)) {
+        if(input_mouse_button_went_down(MOUSE_LEFT_BUTTON, 0, 0)) {
+            hg_set_active(ctx, id, item);
+        }
+    }
 
     Clipping_Rect label_clipping = label_render_auto_layout(ctx, id, item, text, text_length, color);
 
-    if(result = input_inside(input_mouse_position(), label_clipping)) {
+    if(input_inside(input_mouse_position(), label_clipping)) {
         set_hot(ctx, id, item);
     }
 

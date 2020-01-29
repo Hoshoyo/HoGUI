@@ -213,7 +213,7 @@ font_render_text(Font_Info* font_info, FRII* info, ustring str) {
 }
 
 Text_Render_Info
-text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_Character_Position* out_positions, int positions_count) {
+text_prerender(Font_Info* font_info, const char* text, int length, int start_index, Text_Render_Character_Position* out_positions, int positions_count) {
 	Text_Render_Info result = {0};
 	result.line_count = 1;
 
@@ -230,7 +230,7 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 
 	for (s32 i = 0, c = 0, columns = 0; c < length; ++i) {
 		u32 advance = 0;
-		u32 unicode = ustring_get_unicode((u8*)text + idx, &advance);
+		u32 unicode = ustring_get_unicode((u8*)text + ((idx + start_index) % length), &advance);
 		idx += advance;
 
 		s32 repeat = 1;
@@ -317,7 +317,7 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 		}
 	}
 	result.width = max_position.x;
-	result.height = max_position.y - min_height;
+	result.height = MAX(0.0f, max_position.y - min_height);
 
 	if (out_positions && selection_count < positions_count && out_positions[selection_count].index == idx) {
 		Text_Render_Character_Position* fill_indexed_position = out_positions + selection_count;
@@ -329,7 +329,7 @@ text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_C
 }
 
 int
-text_render(Font_Info* font_info, const char* text, int length, vec2 position, Clipping_Rect clipping, vec4 color) {
+text_render(Font_Info* font_info, const char* text, int length, int start_index, vec2 position, Clipping_Rect clipping, vec4 color) {
 	Text_Render_Info result = {0};
 	Character* characters = font_info->characters;
 
@@ -342,7 +342,7 @@ text_render(Font_Info* font_info, const char* text, int length, vec2 position, C
 
 	for (s32 i = 0, c = 0, columns = 0; c < length; ++i) {
 		u32 advance = 0;
-		u32 unicode = ustring_get_unicode((u8*)text + idx, &advance);
+		u32 unicode = ustring_get_unicode((u8*)text + ((idx + start_index) % length), &advance);
 		idx += advance;
 
 		s32 repeat = 1;
@@ -387,6 +387,12 @@ text_render(Font_Info* font_info, const char* text, int length, vec2 position, C
 	}
 
 	return 0;
+}
+
+int text_render_debug(Font_Info* font_info, const char* text, int length, int index) {
+	vec2 position = {0};
+	position.y = index * font_info->max_height;
+	text_render(font_info, text, length, 0, position, font_render_no_clipping(), (vec4){1,1,1,1});
 }
 
 Clipping_Rect font_render_no_clipping() {

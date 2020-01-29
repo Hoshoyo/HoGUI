@@ -4,6 +4,7 @@
 #include "input.h"
 #include "event.h"
 #include <math.h>
+#include <string.h>
 
 typedef struct {
 	r32 w_width, w_height;
@@ -26,10 +27,6 @@ void input_get_mouse_pos(r32* x, r32* y) {
 	*x = roundf(input_mouse.x);
 	*y = roundf(input_mouse.w_height - input_mouse.y);
 }
-
-//const char* input_get_clipboard() {
-//	return glfwGetClipboardString(glfw_window);
-//}
 
 void
 window_size_callback(GLFWwindow* window, s32 width, s32 height) {
@@ -169,6 +166,17 @@ static GLFWcursor* glfw_cursor_vresize;
 static GLFWcursor* glfw_cursor_hresize;
 static GLFWcursor* glfw_cursor_ibeam;
 static GLFWcursor* glfw_cursor_crosshair;
+
+const char* input_get_clipboard() {
+    return glfwGetClipboardString(glfw_window);
+}
+
+void input_set_clipboard(const char* text, int length) {
+    char* str = (char*)calloc(1, length + 1);
+    memcpy(str, text, length);
+    glfwSetClipboardString(glfw_window, str);
+    free(str);
+}
 
 void
 input_set_callbacks(GLFWwindow* window) {

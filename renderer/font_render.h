@@ -2,7 +2,7 @@
 #include <gm.h>
 #include "../common.h"
 #include "font_load.h"
-#include "ustring.h"
+#include "../ustring.h"
 
 typedef struct {
 	r32 x, y, width, height;
@@ -63,5 +63,6 @@ typedef struct {
 	r32  height;
 } Text_Render_Info;
 
-Text_Render_Info text_prerender(Font_Info* font_info, const char* text, int length, Text_Render_Character_Position* out_positions, int positions_count);
-int              text_render(Font_Info* font_info, const char* text, int length, vec2 position, vec4 clipping, vec4 color);
+Text_Render_Info text_prerender(Font_Info* font_info, const char* text, int length, int start_index, Text_Render_Character_Position* out_positions, int positions_count);
+int text_render(Font_Info* font_info, const char* text, int length, int start_index, vec2 position, vec4 clipping, vec4 color);
+int text_render_debug(Font_Info* font_info, const char* text, int length, int index);

@@ -1,11 +1,11 @@
-#include "immgui.h"
+#include "hg_ui.h"
 #include "../renderer/renderer_imm.h"
-#include "immgui_input.h"
+#include "hg_input.h"
 #include "hg_internal.h"
 #include "colors.h"
 
 static Clipping_Rect
-slider_render_auto_layout(HG_Context* ctx, int id, r32 value, r32 min, r32 max) {
+slider_render_auto_layout(HG_Context* ctx, s64 id, int item, r32 value, r32 min, r32 max) {
     // Design parameters
     vec4 color_base = color_from_hex(pallete1_2);
     vec4 color_handle = color_from_hex(pallete1_3);
@@ -55,24 +55,24 @@ slider_render_auto_layout(HG_Context* ctx, int id, r32 value, r32 min, r32 max) 
 }
 
 void 
-hg_do_slider(HG_Context* ctx, int id, r32* value, r32 min, r32 max) {
+hg_do_slider(HG_Context* ctx, s64 id, int item, r32* value, r32 min, r32 max) {
     hg_update(ctx);
 
     vec2 mouse_position = input_mouse_position();
 
-    if(active(ctx, id)) {
+    if(active_item(ctx, id, item)) {
         if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
-            reset_active(ctx);
+            hg_reset_active(ctx);
         }
-    } else if(hot(ctx, id)) {
+    } else if(hot_item(ctx, id, item)) {
         if(input_mouse_button_went_down(MOUSE_LEFT_BUTTON, 0, 0)) {
-            set_active(ctx, id, 0);
+            hg_set_active(ctx, id, item);
         }
     }
     
-    Clipping_Rect slider_clipping = slider_render_auto_layout(ctx, id, *value, min, max);
+    Clipping_Rect slider_clipping = slider_render_auto_layout(ctx, id, item, *value, min, max);
     
-    if(active(ctx, id)) {
+    if(active_item(ctx, id, item)) {
         r32 center = slider_clipping.x + slider_clipping.z / 2.0f;
         r32 diff = mouse_position.x - center;
         r32 w = slider_clipping.z;
@@ -84,6 +84,6 @@ hg_do_slider(HG_Context* ctx, int id, r32* value, r32 min, r32 max) {
     //renderer_imm_debug_box(slider_clipping.x, slider_clipping.y, slider_clipping.z, slider_clipping.w, (vec4){1.0f, 1.0f, 0.0f, 1.0f});
 
     if(input_inside(input_mouse_position(), slider_clipping)) {
-        set_hot(ctx, id, 0);
+        set_hot(ctx, id, item);
     }
 }

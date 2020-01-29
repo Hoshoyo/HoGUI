@@ -1,4 +1,4 @@
-#define ACTIVE_PALLETE 1
+#define ACTIVE_PALLETE 3
 #if ACTIVE_PALLETE == 1
 static const unsigned int pallete1_1 = 0x464159;
 static const unsigned int pallete1_2 = 0x6c7b95;

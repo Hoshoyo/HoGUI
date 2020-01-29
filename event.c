@@ -33,3 +33,13 @@ bool event_pop(Event* e) {
 	}
 	return false;
 }
+
+bool event_peek(Event* e, int index) {
+	*e = event_queue.events[(event_queue.base + index) % EVENT_QUEUE_LENGTH];
+
+	if(e->type != EVENT_NULL) {
+		return true;
+	}
+
+	return false;
+}

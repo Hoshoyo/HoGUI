@@ -10,14 +10,44 @@
 #include "input.h"
 #include "event.h"
 #include "renderer/renderer_imm.h"
-#include "font/font_load.h"
-#include "hogui/hogui.h"
-#include "hogui/immgui_input.h"
-#include "hogui/immgui.h"
+#include "renderer/font_load.h"
+#include "hogui/hg_ui.h"
+#include "hogui/hg_input.h"
 
-Font_Info font_info = {0};
+static vec2 position;
+void hg_test(HG_Context* ctx) {
+	static HG_Container cont, cont2, cont3;
+	static HG_Container_Column cols[2];
+	cols[0].width = 0.5f;
+	cols[1].width = 0.5f;
 
-static HG_Context ctx = {0};
+	int id = 1;
+	hg_window_begin(ctx, id++, &position, 400, 300, "Foo");
+	hg_do_container_column(ctx, id++, &cont2, 1.0f, 1.0f, cols, 2, HG_CONTAINER_TOP_DOWN);
+	hg_do_container(ctx, id++, &cont, 1.0f, 100.0f, HG_CONTAINER_TOP_DOWN);
+	hg_do_label(ctx, id++, 0, "Foo1SHDOASDHOASUDHOUAHSDHOAOSDHHAOSUDHAOSHDoHASUOHDSAOHDHASDASOHDHaos", 69, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo1", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo2", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo3", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo4", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo5", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo6", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo6", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo6", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo6", 4, (vec4){1,1,1,1});
+	hg_do_container_end(ctx, &cont);
+	hg_column_next(ctx);
+	hg_do_container(ctx, id++, &cont3, 1.0f, 100.0f, HG_CONTAINER_TOP_DOWN);
+	hg_do_label(ctx, id++, 0, "Foo8", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo9", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo9", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo9", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo9", 4, (vec4){1,1,1,1});
+	hg_do_label(ctx, id++, 0, "Foo9", 4, (vec4){1,1,1,1});
+	hg_do_container_end(ctx, &cont3);
+	hg_do_container_end(ctx, &cont2);
+
+}
 
 int main() {
     if (!glfwInit()) {
@@ -42,14 +72,6 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-	Font_Load_Status status = font_load(OS_DEFAULT_FONT, &font_info, 16);
-	if(status != FONT_LOAD_OK) {
-		printf("Could not load font %s\n", OS_DEFAULT_FONT);
-		return 1;
-	}
-
-	hogui_init();
-
 	r64 dt = 1.0/120.0;
 	s32 frames = 0;
 	r64 total_time = 0.0;
@@ -57,99 +79,30 @@ int main() {
 
 	glClearColor(0.2f, 0.2f, 0.23f, 1.0f);
 
-	ctx.active.owner = -1;
-	ctx.active.item = -1;
-	ctx.hot.owner = -1;
-	ctx.last_hot.owner = -1;
-	ctx.last_hot.item = -1;
-	ctx.inside_container = false;
+	HG_Context* gui_ctx = hg_init();
 
 	bool running = true;
-	char buffer[10][256];
-	int length[10] = {0};
-	int cursor_index[10] = {0};
-	int selection_distance[10] = {0};
-
-	vec2 w1_pos = (vec2){0,0};
-	vec2 w2_pos = (vec2){300,200};
-
-	r32 value[10] = {0.0f};
-
-	r32 h = 1000.0f;
-	r32 w = 0.0f;
-	r32 vperc = 0.0f;
-	r32 hperc = 0.0f;
 
     while (!glfwWindowShouldClose(window) && running) {
 		glfwPollEvents();
 		int width, height;
 		window_get_size(&width, &height);
 
-		input_immgui(window);
-		input_immgui_set_window_size(width, height);
 
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		{
-			hg_start(&ctx);
+			hg_start(gui_ctx);
+			input_immgui(width, height);
+			Event e = {0};
+			while (event_pop(&e));
 
-			hg_window_begin(&ctx, 200, &w1_pos, 500, 500, "Foo", 1);
-			hg_do_container(&ctx, 1111, 0, 1.0f, &w, &h, &vperc, &hperc);
-			if(hg_do_button(&ctx, 1, "Hello", sizeof("Hello") - 1, true)) {
-				printf("hello\n");
-			}
-			for(int i = 0; i < 30; ++i) {
-				char buffer[32] = {0};
-				int l = sprintf(buffer, "World %d", i);
-				if(hg_do_label(&ctx, 100 + i, buffer, l, (vec4){1.0f, 1.0f, 1.0f, 1.0f})) {
-					//printf("world\n");
-				}
-			}
+			hg_test(gui_ctx);
 
-			//hg_do_text(&ctx, 3, 
-			//	"Hello World\nNew line test!!\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed", 
-			//	sizeof "Hello World\nNew line test!!\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed\n\ttabbed" - 1, (vec4){1.0f, 1.0f, 1.0f, 1.0f});
-#if 0
-			hg_window_begin(&ctx, 201, &w2_pos, 300, 210, "Foo", 2);
-			
-			for(int i = 0; i < 10; ++i) {
-				#if 0
-				if(hg_do_input(&ctx, 400+i, buffer[i], 256, &length[i], &cursor_index[i], &selection_distance[i])) {
-					printf("Input box %d just went inactive\n", 400 + i);
-				}
-				#endif
-				#if 0
-				if(hg_do_button(&ctx, 100 + i, "World", sizeof("World") - 1)) {
-					printf("world\n");
-				}
-				#endif
-				#if 0
-				if(hg_do_label(&ctx, 100 + i, "World", sizeof("World") - 1, (vec4){1.0f, 1.0f, 1.0f, 1.0f})) {
-					//printf("world\n");
-				}
-				#endif
-				#if 0
-				if(hg_do_button(&ctx, 100 + i, "World", sizeof("World") - 1, i % 2 == 0)) {
-					printf("world\n");
-				}
-				#endif
-				hg_do_slider(&ctx, 300 + i, &value[i], -10, 10);
-				
-			}
-			hg_window_next_column(&ctx);
-			for(int i = 0; i < 10; ++i) {
-				char buffer[32] = {0};
-				int len = sprintf(buffer, "%f", value[i]);
-				hg_do_label(&ctx, 400 + i, buffer, len, (vec4){1.0f, 1.0f, 1.0f, 1.0f});
-			}
-#endif
+			hg_end(gui_ctx);
+			hg_render(gui_ctx);
 		}
-	
-		renderer_imm_enable_blending();
-		glDisable(GL_DEPTH_TEST);
-		renderer_imm_flush(font_info.atlas_full_id);
-		renderer_imm_disable_blending();	
 
 		// Calculate elapsed time
 		// TODO(psv): make an OS level function here instead of ifdefs
