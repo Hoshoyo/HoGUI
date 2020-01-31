@@ -144,6 +144,8 @@ static bool hg_layout_rectangle_top_down_multiple_columns(HG_Context* ctx, vec2*
     }
 
     *clipping = ctx->current_frame.clipping;
+    clipping->z = col_width;
+    clipping->x = position->x;
 
     return true;
 }

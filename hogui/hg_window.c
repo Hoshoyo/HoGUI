@@ -149,6 +149,7 @@ void hg_column_previous(HG_Context* ctx) {
 
 void hg_do_container_column(HG_Context* ctx, s64 id, HG_Container* container, r32 width, r32 height, HG_Container_Column* columns_info, s32 columns_count, HG_Container_Layout layout_mode) {
     vec2 layout_position = {0};
+    Clipping_Rect last_clipping = ctx->current_frame.clipping;
     hg_layout_rectangle_top_down(ctx, &layout_position, &width, &height, &ctx->current_frame.clipping);
 
     // If total height is bigger than the space we have, create a vertical scroll bar,
@@ -160,6 +161,7 @@ void hg_do_container_column(HG_Context* ctx, s64 id, HG_Container* container, r3
 
     // Save current context
     container->within_frame = ctx->current_frame;
+    container->within_frame.clipping = last_clipping;
 
     Clipping_Rect layout = (Clipping_Rect){layout_position.x, layout_position.y, width, height};
     Clipping_Rect clipping = clipping_rect_merge(layout, ctx->current_frame.clipping);

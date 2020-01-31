@@ -31,17 +31,15 @@ void hg_test(HG_Context* ctx) {
 	hg_window_begin(ctx, id++, &position, 400, 100, "Foo");
 
 	hg_do_container_column(ctx, id++, &cont, 1, 1, cols, 2, HG_CONTAINER_TOP_DOWN);
+	hg_do_graph(ctx, id++, 0, frame_times, 120, 1000.0f / 120.0f, (vec4){1,1,1,1});
 	//hg_do_container(ctx, id++, &cont, 1.0f, 1.0f, HG_CONTAINER_TOP_DOWN);
 	for(s32 i = 0; i < 10; ++i) {
 		char b[64] = {0};
 		int l = sprintf(b, "foo %d", i);
 		hg_do_label(ctx, id++, 0, b, l, (vec4){1,1,1,1});
-	}
-	hg_column_next(ctx);
-	for(s32 i = 0; i < 12; ++i) {
-		char b[64] = {0};
-		int l = sprintf(b, "foo %d", i);
+		hg_column_next(ctx);
 		hg_do_label(ctx, id++, 0, b, l, (vec4){1,1,1,1});
+		hg_column_previous(ctx);
 	}
 
 	text_render_debug(&ctx->font_info, "{%f,%f,%f,%f} %f", 20, ctx->current_frame.x, ctx->current_frame.y, 
