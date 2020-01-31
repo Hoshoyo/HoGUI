@@ -61,6 +61,7 @@ void hg_set_active(HG_Context* ctx, s64 id, int item) {
 void hg_reset_active(HG_Context* ctx) {
     ctx->active.owner = -1;
     ctx->active.item = -1;
+    ctx->active_interacting = false;
 }
 
 bool hg_active_item(HG_Context* ctx, s64 id, int item) {
@@ -135,6 +136,8 @@ static bool hg_layout_rectangle_top_down_multiple_columns(HG_Context* ctx, vec2*
 
     if(ctx->current_frame_set) {
         ctx->current_frame.column_info[index].current_height -= (*height);
+        r32 ch = ctx->current_frame.column_info[index].current_height;
+        if(ch < ctx->current_frame.height) ctx->current_frame.height = ch;
     }
     if (*width > ctx->current_frame.max_width) {
         ctx->current_frame.max_width = *width;

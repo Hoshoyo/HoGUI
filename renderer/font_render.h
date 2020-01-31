@@ -65,4 +65,4 @@ typedef struct {
 
 Text_Render_Info text_prerender(Font_Info* font_info, const char* text, int length, int start_index, Text_Render_Character_Position* out_positions, int positions_count);
 int text_render(Font_Info* font_info, const char* text, int length, int start_index, vec2 position, vec4 clipping, vec4 color);
-int text_render_debug(Font_Info* font_info, const char* text, int length, int index);
+int text_render_debug(Font_Info* font_info, const char* text, int index, ...);

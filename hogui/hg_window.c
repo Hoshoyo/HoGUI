@@ -256,12 +256,12 @@ void hg_do_container(HG_Context* ctx, s64 id, HG_Container* container, r32 width
 }
 
 void hg_do_container_end(HG_Context* ctx, HG_Container* container) {
-    container->total_height -= ctx->current_frame.height;
     container->total_width = ctx->current_frame.max_width;
+    container->total_height -= ctx->current_frame.height;
 
     if(ctx->current_frame.column_count > 0) {
         for(s32 i = 0; i < ctx->current_frame.column_count; ++i) {
-            ctx->current_frame.column_info[i].current_height = 0.0f;
+            ctx->current_frame.column_info[i].current_height = container->total_height;
         }
     }
 

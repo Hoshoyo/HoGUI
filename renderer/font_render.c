@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <float.h>
 #include "../renderer/renderer_imm.h"
+#include "../catstring.h"
 
 static bool
 inside(vec2 p, r32 x, r32 y, r32 width, r32 height) {
@@ -389,12 +390,21 @@ text_render(Font_Info* font_info, const char* text, int length, int start_index,
 	return 0;
 }
 
-int text_render_debug(Font_Info* font_info, const char* text, int length, int index) {
-	vec2 position = {0};
-	position.y = index * font_info->max_height;
-	text_render(font_info, text, length, 0, position, font_render_no_clipping(), (vec4){1,1,1,1});
-}
-
 Clipping_Rect font_render_no_clipping() {
 	return (Clipping_Rect) { 0, 0, FLT_MAX, FLT_MAX };
+}
+
+int text_render_debug(Font_Info* font_info, const char* text, int index, ...) {
+	vec2 position = {0};
+	position.y = index * font_info->max_height;
+	catstring str = {0};
+
+	va_list args;
+	va_start(args, index);
+	int len = catsprint_list(&str, (char*)text, args);
+
+	va_end(args);
+	text_render(font_info, str.data, str.length, 0, position, font_render_no_clipping(), (vec4){1,1,1,1});
+
+	catstring_free(&str);
 }

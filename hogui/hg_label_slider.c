@@ -51,7 +51,7 @@ label_render_auto_layout(HG_Context* ctx, s64 id, int item, const char* text, in
     return label_clipping;
 }
 
-r32 hg_do_label_slider(HG_Context* ctx, s64 id, int item, const char* text, int text_length, vec4 color) {
+r32 hg_do_label_slider(HG_Context* ctx, s64 id, int item, const char* text, int text_length, vec4 color, HG_Label_Slider_Event* out_event) {
     hg_update(ctx);
     r32 result = 0.0f;
 
@@ -60,10 +60,14 @@ r32 hg_do_label_slider(HG_Context* ctx, s64 id, int item, const char* text, int 
 
     if(active_item(ctx, id, item)) {
         if(input_mouse_button_went_up(MOUSE_LEFT_BUTTON, 0, 0)) {
+            if(out_event && hot_item(ctx, id, item) && !ctx->active_interacting) {
+                *out_event = HG_LABEL_SLIDER_CLICKED;
+            }
             hg_reset_active(ctx);
         } else {
             r32 diff = mouse_position.x - mouse_last_position.x;
             result = diff;
+            if(diff != 0.0f) ctx->active_interacting = true;
         }
     } else if(hot_item(ctx, id, item)) {
         if(input_mouse_button_went_down(MOUSE_LEFT_BUTTON, 0, 0)) {

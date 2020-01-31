@@ -36,6 +36,7 @@ typedef struct {
     uid active;
     uid previous_active;
     u32 flags;
+    bool active_interacting;
 
     uid last_hot;
 
@@ -95,6 +96,11 @@ typedef enum {
     HG_INPUT_BOX_EXIT_TAB,
 } HG_Input_Box_Exit;
 
+typedef enum {
+    HG_LABEL_SLIDER_NONE = 0,
+    HG_LABEL_SLIDER_CLICKED,
+} HG_Label_Slider_Event;
+
 HG_Context* hg_init();
 void hg_start(HG_Context* ctx);
 bool hg_end(HG_Context* ctx);   // When input events are handled by GUI return true
@@ -121,7 +127,7 @@ HG_Input_Box_Exit hg_do_input(HG_Context* ctx, s64 id, int item, char* buffer, i
 
 // Slider
 void hg_do_slider(HG_Context* ctx, s64 id, int item, r32* value, r32 min, r32 max);
-r32  hg_do_label_slider(HG_Context* ctx, s64 id, int item, const char* text, int text_length, vec4 color);
+r32  hg_do_label_slider(HG_Context* ctx, s64 id, int item, const char* text, int text_length, vec4 color, HG_Label_Slider_Event* out_event);
 
 // Label
 bool hg_do_label(HG_Context* ctx, s64 id, int item, const char* text, int text_length, vec4 color);
@@ -129,3 +135,6 @@ bool hg_do_label(HG_Context* ctx, s64 id, int item, const char* text, int text_l
 // Text
 bool hg_do_text_advanced(HG_Context* ctx, s64 id, int item, const char* text, int text_length, int start_index, vec4 color, vec4* out_bbox);
 bool hg_do_text(HG_Context* ctx, s64 id, int item, const char* text, int text_length, vec4 color);
+
+// Graph
+bool hg_do_graph(HG_Context* ctx, s64 id, int item, r32* values, s32 count, r32 initial_max, vec4 color);
