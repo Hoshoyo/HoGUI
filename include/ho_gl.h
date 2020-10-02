@@ -28,6 +28,12 @@
 #define APIENTRY
 #endif
 
+#elif defined(__APPLE__)
+#include <OpenGL/gl.h> //OS x libs
+#ifndef APIENTRY
+#define APIENTRY
+#endif
+
 #endif
 
 #ifdef __cplusplus
@@ -1597,9 +1603,15 @@ typedef R X##_proctype A;   \
 extern X##_proctype* hogl_##X
 #endif
 
+#elif defined(__APPLE__)
+
+#if defined(HOGL_IMPLEMENT)
+#define INSTANTIATE_GLCALL(R, X, A)
+#else
+#define INSTANTIATE_GLCALL(R, X, A)
 #endif
 
-INSTANTIATE_GLCALL(GLuint64, glGetTextureHandleARB, (GLuint));
+#endif
 
 INSTANTIATE_GLCALL(void, glClear, (GLbitfield mask));
 INSTANTIATE_GLCALL(void, glClearBufferiv, (GLenum buffer, GLint drawbuffer, const GLint* value));
@@ -2225,6 +2237,11 @@ INSTANTIATE_GLCALL(void, glVertexArrayBindingDivisor, (GLuint vaobj, GLuint bind
 
 #if defined(HOGL_IMPLEMENT)
 
+#if defined(__APPLE__)
+extern int hogl_init_gl_extensions() {
+  return 0;
+}
+#else
 extern int hogl_init_gl_extensions() {
 	#if defined (_WIN32) || defined(_WIN64)
 	HMODULE glcode = LoadLibraryA("opengl32.dll");
@@ -2257,7 +2274,6 @@ extern int hogl_init_gl_extensions() {
 	LOAD_GL_PROC(glReadPixels);				// opengl32.dll
 
 	// Textures
-	LOAD_GL_PROC(glGetTextureHandleARB);
 	LOAD_GL_PROC(glActiveTexture);
 	LOAD_GL_PROC(glBindImageTexture);
 	LOAD_GL_PROC(glBindImageTextures);
@@ -2880,7 +2896,10 @@ extern int hogl_init_gl_extensions() {
 	#endif
 	return 0;
 }
+#endif // APPLE
 #endif // HOGL_IMPLEMENT
+
+#if !defined(__APPLE__)
 
 #define glClear hogl_glClear
 #define glClearBufferiv hogl_glClearBufferiv
@@ -2902,7 +2921,6 @@ extern int hogl_init_gl_extensions() {
 #define glReadBuffer hogl_glReadBuffer
 #define glReadPixels hogl_glReadPixels
 
-#define glGetTextureHandleARB hogl_glGetTextureHandleARB
 #define glActiveTexture hogl_glActiveTexture
 #define glBindImageTexture hogl_glBindImageTexture
 #define glBindImageTextures hogl_glBindImageTextures
@@ -3504,6 +3522,8 @@ extern int hogl_init_gl_extensions() {
 #define glVertexAttribLPointer hogl_glVertexAttribLPointer
 #define glVertexBindingDivisor hogl_glVertexBindingDivisor
 #define glVertexArrayBindingDivisor hogl_glVertexArrayBindingDivisor
+
+#endif
 
 #if defined(_WIN32) || defined(_WIN64)
 #if defined(HOGL_IMPLEMENT)
