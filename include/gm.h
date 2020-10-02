@@ -1,10 +1,30 @@
 #pragma once
-#include "../src/common.h"
+
+typedef float r32;
+typedef double r64;
+typedef char s8;
+typedef short s16;
+typedef int s32;
+typedef long long int s64;
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned int u32;
+typedef unsigned long long int u64;
+typedef int bool;
+
+#define true 1
+#define false 0
+
 #include "math.h"
 #include <assert.h>
 #include <stdio.h>
 
 #define PI_F 3.14159265358979f
+#if defined(GM_STATIC)
+#define GM_API static
+#else
+#define GM_API 
+#endif
 
 typedef struct _mat4 mat4;
 typedef struct _mat3 mat3;
@@ -108,78 +128,78 @@ struct _dvec2
 #pragma pack(pop)
 
 // Mat4
-mat4  gm_mat4_ortho(r32 left, r32 right, r32 bottom, r32 top);
-bool  gm_mat4_inverse(const mat4* m, mat4* out);
-vec4  gm_mat4_multiply_vec4(const mat4* m, vec4 v);
-vec3  gm_mat4_multiply_vec3(const mat4* m, vec3 v);
-mat4  gm_mat4_multiply(const mat4* m1, const mat4* m2);
-mat4  gm_mat4_transpose(const mat4* m);
-mat4  gm_mat4_identity(void);
-mat4  gm_mat4_scalar_product(r32 scalar, const mat4* m);
-char* gm_mat4_to_string(char* buffer, const mat4* m);
-mat4  gm_mat4_translate(const vec3 v);
-mat4  gm_mat4_translate_transposed(const vec3 v);
-mat4  gm_mat4_scale(const vec3 v);
-vec3  gm_mat4_translation_from_matrix(const mat4* m);
-mat3  gm_mat4_to_mat3(const mat4* m);
+GM_API mat4  gm_mat4_ortho(r32 left, r32 right, r32 bottom, r32 top);
+GM_API bool  gm_mat4_inverse(const mat4* m, mat4* out);
+GM_API vec4  gm_mat4_multiply_vec4(const mat4* m, vec4 v);
+GM_API vec3  gm_mat4_multiply_vec3(const mat4* m, vec3 v);
+GM_API mat4  gm_mat4_multiply(const mat4* m1, const mat4* m2);
+GM_API mat4  gm_mat4_transpose(const mat4* m);
+GM_API mat4  gm_mat4_identity(void);
+GM_API mat4  gm_mat4_scalar_product(r32 scalar, const mat4* m);
+GM_API char* gm_mat4_to_string(char* buffer, const mat4* m);
+GM_API mat4  gm_mat4_translate(const vec3 v);
+GM_API mat4  gm_mat4_translate_transposed(const vec3 v);
+GM_API mat4  gm_mat4_scale(const vec3 v);
+GM_API vec3  gm_mat4_translation_from_matrix(const mat4* m);
+GM_API mat3  gm_mat4_to_mat3(const mat4* m);
 
 // Mat3
-mat3  gm_mat3_multiply(const mat3* m1, const mat3* m2);
-vec3  gm_mat3_multiply_vec3(const mat3* m, vec3 v);
-mat3  gm_mat3_transpose(const mat3* m);
-mat3  gm_mat3_scalar_product(r32 scalar, const mat3* m);
-mat3  gm_mat3_identity(void);
-char* gm_mat3_to_string(char* buffer, const mat3* m);
+GM_API mat3  gm_mat3_multiply(const mat3* m1, const mat3* m2);
+GM_API vec3  gm_mat3_multiply_vec3(const mat3* m, vec3 v);
+GM_API mat3  gm_mat3_transpose(const mat3* m);
+GM_API mat3  gm_mat3_scalar_product(r32 scalar, const mat3* m);
+GM_API mat3  gm_mat3_identity(void);
+GM_API char* gm_mat3_to_string(char* buffer, const mat3* m);
 
 // Mat2
-mat2  gm_mat2_multiply(const mat2* m1, const mat2* m2);
-mat2  gm_mat2_transpose(const mat2* m);
-mat2  gm_mat2_scalar_product(r32 scalar, const mat2* m);
-mat2  gm_mat2_identity(void);
-char* gm_mat2_to_string(char* buffer, const mat2* m);
+GM_API mat2  gm_mat2_multiply(const mat2* m1, const mat2* m2);
+GM_API mat2  gm_mat2_transpose(const mat2* m);
+GM_API mat2  gm_mat2_scalar_product(r32 scalar, const mat2* m);
+GM_API mat2  gm_mat2_identity(void);
+GM_API char* gm_mat2_to_string(char* buffer, const mat2* m);
 
 // Vec4
-bool  gm_vec4_equal(vec4 v1, vec4 v2);
-vec4  gm_vec4_scalar_product(r32 scalar, vec4 v);
-vec4  gm_vec4_normalize(vec4 v);
-r32   gm_vec4_length(vec4 v);
-vec4  gm_vec4_add(vec4 v1, vec4 v2);
-vec4  gm_vec4_subtract(vec4 v1, vec4 v2);
-r32   gm_vec4_dot(vec4 v1, vec4 v2);
-vec4 gm_vec4_cross(vec4 v1, vec4 v2);
-char* gm_vec4_to_string(char* buffer, vec4 v);
+GM_API bool  gm_vec4_equal(vec4 v1, vec4 v2);
+GM_API vec4  gm_vec4_scalar_product(r32 scalar, vec4 v);
+GM_API vec4  gm_vec4_normalize(vec4 v);
+GM_API r32   gm_vec4_length(vec4 v);
+GM_API vec4  gm_vec4_add(vec4 v1, vec4 v2);
+GM_API vec4  gm_vec4_subtract(vec4 v1, vec4 v2);
+GM_API r32   gm_vec4_dot(vec4 v1, vec4 v2);
+GM_API vec4 gm_vec4_cross(vec4 v1, vec4 v2);
+GM_API char* gm_vec4_to_string(char* buffer, vec4 v);
 
 // Vec3
-bool  gm_vec3_equal(vec3 v1, vec3 v2);
-vec3  gm_vec3_scalar_product(r32 scalar, vec3 v);
-vec3  gm_vec3_normalize(vec3 v);
-r32   gm_vec3_length(vec3 v);
-vec3  gm_vec3_add(vec3 v1, vec3 v2);
-vec3  gm_vec3_subtract(vec3 v1, vec3 v2);
-r32   gm_vec3_dot(vec3 v1, vec3 v2);
-vec3  gm_vec3_cross(vec3 v1, vec3 v2);
-char* gm_vec3_to_string(char* buffer, vec3 v);
-vec3  gm_vec4_to_vec3(vec4 v);
-vec3  gm_vec3_negative(vec3 v);
+GM_API bool  gm_vec3_equal(vec3 v1, vec3 v2);
+GM_API vec3  gm_vec3_scalar_product(r32 scalar, vec3 v);
+GM_API vec3  gm_vec3_normalize(vec3 v);
+GM_API r32   gm_vec3_length(vec3 v);
+GM_API vec3  gm_vec3_add(vec3 v1, vec3 v2);
+GM_API vec3  gm_vec3_subtract(vec3 v1, vec3 v2);
+GM_API r32   gm_vec3_dot(vec3 v1, vec3 v2);
+GM_API vec3  gm_vec3_cross(vec3 v1, vec3 v2);
+GM_API char* gm_vec3_to_string(char* buffer, vec3 v);
+GM_API vec3  gm_vec4_to_vec3(vec4 v);
+GM_API vec3  gm_vec3_negative(vec3 v);
 
 // Vec2
-vec2  gm_vec2_add(vec2 v1, vec2 v2);
-bool  gm_vec2_equal(vec2 v1, vec2 v2);
-vec2  gm_vec2_scalar_product(r32 scalar, vec2 v);
-vec2  gm_vec2_normalize(vec2 v);
-r32   gm_vec2_length(vec2 v);
-vec2  gm_vec2_subtract(vec2 v1, vec2 v2);
-r32   gm_vec2_dot(vec2 v1, vec2 v2);
-r32   gm_vec2_angle(vec2 v);
-char* gm_vec2_to_string(char* buffer, vec2 v);
+GM_API vec2  gm_vec2_add(vec2 v1, vec2 v2);
+GM_API bool  gm_vec2_equal(vec2 v1, vec2 v2);
+GM_API vec2  gm_vec2_scalar_product(r32 scalar, vec2 v);
+GM_API vec2  gm_vec2_normalize(vec2 v);
+GM_API r32   gm_vec2_length(vec2 v);
+GM_API vec2  gm_vec2_subtract(vec2 v1, vec2 v2);
+GM_API r32   gm_vec2_dot(vec2 v1, vec2 v2);
+GM_API r32   gm_vec2_angle(vec2 v);
+GM_API char* gm_vec2_to_string(char* buffer, vec2 v);
 
 // Util
-r32  gm_radians(r32 degrees);
-r32  gm_degrees(r32 radians);
-r32  gm_absolute(r32 x);
+GM_API r32  gm_radians(r32 degrees);
+GM_API r32  gm_degrees(r32 radians);
+GM_API r32  gm_absolute(r32 x);
 
 #ifdef GRAPHICS_MATH_IMPLEMENT
-mat4 gm_mat4_ortho(r32 left, r32 right, r32 bottom, r32 top)
+GM_API mat4 gm_mat4_ortho(r32 left, r32 right, r32 bottom, r32 top)
 {
 	mat4 result;
 	result.data[0][0] = 2.0f / (right - left);	result.data[0][1] = 0;						result.data[0][2] = 0;	result.data[0][3] = -(right + left) / (right - left);
@@ -190,7 +210,7 @@ mat4 gm_mat4_ortho(r32 left, r32 right, r32 bottom, r32 top)
 	return result;
 }
 
-bool gm_mat4_inverse(const mat4* m, mat4* out)
+GM_API bool gm_mat4_inverse(const mat4* m, mat4* out)
 {
 	mat4 inv;
 	r32 det;
@@ -325,7 +345,7 @@ bool gm_mat4_inverse(const mat4* m, mat4* out)
 	return true;
 }
 
-mat4 gm_mat4_multiply(const mat4* m1, const mat4* m2)
+GM_API mat4 gm_mat4_multiply(const mat4* m1, const mat4* m2)
 {
 	mat4 result;
 
@@ -349,7 +369,7 @@ mat4 gm_mat4_multiply(const mat4* m1, const mat4* m2)
 	return result;
 }
 
-mat3 gm_mat3_multiply(const mat3* m1, const mat3* m2)
+GM_API mat3 gm_mat3_multiply(const mat3* m1, const mat3* m2)
 {
 	mat3 result;
 
@@ -366,7 +386,7 @@ mat3 gm_mat3_multiply(const mat3* m1, const mat3* m2)
 	return result;
 }
 
-mat2 gm_mat2_multiply(const mat2* m1, const mat2* m2)
+GM_API mat2 gm_mat2_multiply(const mat2* m1, const mat2* m2)
 {
 	mat2 result;
 
@@ -380,7 +400,7 @@ mat2 gm_mat2_multiply(const mat2* m1, const mat2* m2)
 	return result;
 }
 
-vec4 gm_mat4_multiply_vec4(const mat4* m, vec4 v)
+GM_API vec4 gm_mat4_multiply_vec4(const mat4* m, vec4 v)
 {
 	vec4 result;
 
@@ -392,23 +412,23 @@ vec4 gm_mat4_multiply_vec4(const mat4* m, vec4 v)
 	return result;
 }
 
-vec3 gm_mat4_multiply_vec3(const mat4* m, vec3 v) {
+GM_API vec3 gm_mat4_multiply_vec3(const mat4* m, vec3 v) {
 	vec3 result;
-	result.x = m->data[0][0] * v.x + m->data[0][1] * v.y + m->data[0][2] * v.z + m->data[0][3] * 1.0f;
-	result.y = m->data[1][0] * v.x + m->data[1][1] * v.y + m->data[1][2] * v.z + m->data[1][3] * 1.0f;
-	result.z = m->data[2][0] * v.x + m->data[2][1] * v.y + m->data[2][2] * v.z + m->data[2][3] * 1.0f;
+	result.x = m->data[0][0] * v.x + m->data[0][1] * v.y + m->data[0][2] * v.z + m->data[0][3];
+	result.y = m->data[1][0] * v.x + m->data[1][1] * v.y + m->data[1][2] * v.z + m->data[1][3];
+	result.z = m->data[2][0] * v.x + m->data[2][1] * v.y + m->data[2][2] * v.z + m->data[2][3];
 	return result;
 }
 
-vec3 gm_mat3_multiply_vec3(const mat3* m, vec3 v) {
+GM_API vec3 gm_mat3_multiply_vec3(const mat3* m, vec3 v) {
 	vec3 result;
-	result.x = m->data[0][0] * v.x + m->data[0][1] * v.y + m->data[0][2] * v.z + m->data[0][3] * 1.0f;
-	result.y = m->data[1][0] * v.x + m->data[1][1] * v.y + m->data[1][2] * v.z + m->data[1][3] * 1.0f;
-	result.z = m->data[2][0] * v.x + m->data[2][1] * v.y + m->data[2][2] * v.z + m->data[2][3] * 1.0f;
+	result.x = m->data[0][0] * v.x + m->data[0][1] * v.y + m->data[0][2] * v.z;
+	result.y = m->data[1][0] * v.x + m->data[1][1] * v.y + m->data[1][2] * v.z;
+	result.z = m->data[2][0] * v.x + m->data[2][1] * v.y + m->data[2][2] * v.z;
 	return result;
 }
 
-mat3 gm_mat4_to_mat3(const mat4* m) {
+GM_API mat3 gm_mat4_to_mat3(const mat4* m) {
 	mat3 result;
 	result.data[0][0] = m->data[0][0];
 	result.data[0][1] = m->data[0][1];
@@ -422,7 +442,7 @@ mat3 gm_mat4_to_mat3(const mat4* m) {
 	return result;
 }
 
-mat4 gm_mat4_transpose(const mat4* m)
+GM_API mat4 gm_mat4_transpose(const mat4* m)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -436,7 +456,7 @@ mat4 gm_mat4_transpose(const mat4* m)
 	};
 }
 
-mat3 gm_mat3_transpose(const mat3* m)
+GM_API mat3 gm_mat3_transpose(const mat3* m)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -449,7 +469,7 @@ mat3 gm_mat3_transpose(const mat3* m)
 	};
 }
 
-mat2 gm_mat2_transpose(const mat2* m)
+GM_API mat2 gm_mat2_transpose(const mat2* m)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -461,7 +481,7 @@ mat2 gm_mat2_transpose(const mat2* m)
 	};
 }
 
-mat4 gm_mat4_scalar_product(r32 scalar, const mat4* m)
+GM_API mat4 gm_mat4_scalar_product(r32 scalar, const mat4* m)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -475,7 +495,7 @@ mat4 gm_mat4_scalar_product(r32 scalar, const mat4* m)
 	};
 }
 
-mat3 gm_mat3_scalar_product(r32 scalar, const mat3* m)
+GM_API mat3 gm_mat3_scalar_product(r32 scalar, const mat3* m)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -488,7 +508,7 @@ mat3 gm_mat3_scalar_product(r32 scalar, const mat3* m)
 	};
 }
 
-mat2 gm_mat2_scalar_product(r32 scalar, const mat2* m)
+GM_API mat2 gm_mat2_scalar_product(r32 scalar, const mat2* m)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -500,7 +520,7 @@ mat2 gm_mat2_scalar_product(r32 scalar, const mat2* m)
 	};
 }
 
-mat4 gm_mat4_identity(void)
+GM_API mat4 gm_mat4_identity(void)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -514,7 +534,7 @@ mat4 gm_mat4_identity(void)
 	};
 }
 
-mat3 gm_mat3_identity(void)
+GM_API mat3 gm_mat3_identity(void)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -527,7 +547,7 @@ mat3 gm_mat3_identity(void)
 	};
 }
 
-mat2 gm_mat2_identity(void)
+GM_API mat2 gm_mat2_identity(void)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -539,7 +559,7 @@ mat2 gm_mat2_identity(void)
 	};
 }
 
-mat4 gm_mat4_scale(const vec3 v) 
+GM_API mat4 gm_mat4_scale(const vec3 v) 
 {
 	mat4 result = gm_mat4_identity();
 	result.data[0][0] = v.x;
@@ -548,7 +568,7 @@ mat4 gm_mat4_scale(const vec3 v)
 	return result;
 }
 
-mat4 gm_mat4_translate(const vec3 v)
+GM_API mat4 gm_mat4_translate(const vec3 v)
 {
 	mat4 result = gm_mat4_identity();
 	result.data[0][0] = 1.0f;
@@ -564,7 +584,7 @@ mat4 gm_mat4_translate(const vec3 v)
 	return result;
 }
 
-mat4 gm_mat4_translate_transposed(const vec3 v)
+GM_API mat4 gm_mat4_translate_transposed(const vec3 v)
 {
 	mat4 result = gm_mat4_identity();
 	result.data[0][0] = 1.0f;
@@ -580,7 +600,7 @@ mat4 gm_mat4_translate_transposed(const vec3 v)
 	return result;
 }
 
-vec3 gm_mat4_translation_from_matrix(const mat4* m)
+GM_API vec3 gm_mat4_translation_from_matrix(const mat4* m)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -589,7 +609,7 @@ vec3 gm_mat4_translation_from_matrix(const mat4* m)
 	{m->data[0][3], m->data[1][3], m->data[2][3]};
 }
 
-vec3 gm_vec3_negative(vec3 v) {
+GM_API vec3 gm_vec3_negative(vec3 v) {
 	return gm_vec3_subtract(
 	#if !defined(__cplusplus)
 	(vec3)
@@ -597,28 +617,28 @@ vec3 gm_vec3_negative(vec3 v) {
 	{0.0f, 0.0f, 0.0f}, v);
 }
 
-bool gm_vec2_equal(vec2 v1, vec2 v2)
+GM_API bool gm_vec2_equal(vec2 v1, vec2 v2)
 {
 	if (v1.x == v2.x && v1.y == v2.y)
 		return true;
 	return false;
 }
 
-bool gm_vec3_equal(vec3 v1, vec3 v2)
+GM_API bool gm_vec3_equal(vec3 v1, vec3 v2)
 {
 	if (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z)
 		return true;
 	return false;
 }
 
-bool gm_vec4_equal(vec4 v1, vec4 v2)
+GM_API bool gm_vec4_equal(vec4 v1, vec4 v2)
 {
 	if (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z && v1.w == v2.w)
 		return true;
 	return false;
 }
 
-vec4 gm_vec4_scalar_product(r32 scalar, vec4 v)
+GM_API vec4 gm_vec4_scalar_product(r32 scalar, vec4 v)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -627,7 +647,7 @@ vec4 gm_vec4_scalar_product(r32 scalar, vec4 v)
 	{ scalar * v.x, scalar * v.y, scalar * v.z, scalar * v.w };
 }
 
-vec3 gm_vec3_scalar_product(r32 scalar, vec3 v)
+GM_API vec3 gm_vec3_scalar_product(r32 scalar, vec3 v)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -636,7 +656,7 @@ vec3 gm_vec3_scalar_product(r32 scalar, vec3 v)
 	{ scalar * v.x, scalar * v.y, scalar * v.z };
 }
 
-vec2 gm_vec2_scalar_product(r32 scalar, vec2 v)
+GM_API vec2 gm_vec2_scalar_product(r32 scalar, vec2 v)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -645,7 +665,7 @@ vec2 gm_vec2_scalar_product(r32 scalar, vec2 v)
 	{ scalar * v.x, scalar * v.y };
 }
 
-vec4 gm_vec4_normalize(vec4 v)
+GM_API vec4 gm_vec4_normalize(vec4 v)
 {
 #if !defined(__cplusplus)
 	if (!(v.x != 0.0f || v.y != 0.0f || v.z != 0.0f || v.w != 0.0f)) {
@@ -662,7 +682,7 @@ vec4 gm_vec4_normalize(vec4 v)
 #endif	
 }
 
-vec3 gm_vec3_normalize(vec3 v)
+GM_API vec3 gm_vec3_normalize(vec3 v)
 {
 #if !defined(__cplusplus)
 	if (!(v.x != 0.0f || v.y != 0.0f || v.z != 0.0f)) {
@@ -679,7 +699,7 @@ vec3 gm_vec3_normalize(vec3 v)
 #endif
 }
 
-vec2 gm_vec2_normalize(vec2 v)
+GM_API vec2 gm_vec2_normalize(vec2 v)
 {
 #if !defined(__cplusplus)
 	if (!(v.x != 0.0f || v.y != 0.0f)) {
@@ -696,22 +716,22 @@ vec2 gm_vec2_normalize(vec2 v)
 #endif
 }
 
-r32 gm_vec4_length(vec4 v)
+GM_API r32 gm_vec4_length(vec4 v)
 {
 	return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
-r32 gm_vec3_length(vec3 v)
+GM_API r32 gm_vec3_length(vec3 v)
 {
 	return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
-r32 gm_vec2_length(vec2 v)
+GM_API r32 gm_vec2_length(vec2 v)
 {
 	return sqrtf(v.x * v.x + v.y * v.y);
 }
 
-vec4 gm_vec4_add(vec4 v1, vec4 v2)
+GM_API vec4 gm_vec4_add(vec4 v1, vec4 v2)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -720,7 +740,7 @@ vec4 gm_vec4_add(vec4 v1, vec4 v2)
 	{ v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w };
 }
 
-vec3 gm_vec3_add(vec3 v1, vec3 v2)
+GM_API vec3 gm_vec3_add(vec3 v1, vec3 v2)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -729,7 +749,7 @@ vec3 gm_vec3_add(vec3 v1, vec3 v2)
 	{ v1.x + v2.x, v1.y + v2.y, v1.z + v2.z };
 }
 
-vec2 gm_vec2_add(vec2 v1, vec2 v2)
+GM_API vec2 gm_vec2_add(vec2 v1, vec2 v2)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -738,7 +758,7 @@ vec2 gm_vec2_add(vec2 v1, vec2 v2)
 	{ v1.x + v2.x, v1.y + v2.y };
 }
 
-vec4 gm_vec4_subtract(vec4 v1, vec4 v2)
+GM_API vec4 gm_vec4_subtract(vec4 v1, vec4 v2)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -747,7 +767,7 @@ vec4 gm_vec4_subtract(vec4 v1, vec4 v2)
 	{ v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w };
 }
 
-vec3 gm_vec3_subtract(vec3 v1, vec3 v2)
+GM_API vec3 gm_vec3_subtract(vec3 v1, vec3 v2)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -756,7 +776,7 @@ vec3 gm_vec3_subtract(vec3 v1, vec3 v2)
 	{ v1.x - v2.x, v1.y - v2.y, v1.z - v2.z };
 }
 
-vec2 gm_vec2_subtract(vec2 v1, vec2 v2)
+GM_API vec2 gm_vec2_subtract(vec2 v1, vec2 v2)
 {
 	return 
 	#if !defined(__cplusplus)
@@ -765,37 +785,37 @@ vec2 gm_vec2_subtract(vec2 v1, vec2 v2)
 	{ v1.x - v2.x, v1.y - v2.y };
 }
 
-r32 gm_vec4_dot(vec4 v1, vec4 v2)
+GM_API r32 gm_vec4_dot(vec4 v1, vec4 v2)
 {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
 }
 
-r32 gm_vec3_dot(vec3 v1, vec3 v2)
+GM_API r32 gm_vec3_dot(vec3 v1, vec3 v2)
 {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-r32 gm_vec2_dot(vec2 v1, vec2 v2)
+GM_API r32 gm_vec2_dot(vec2 v1, vec2 v2)
 {
 	return v1.x * v2.x + v1.y * v2.y;
 }
 
-r32 gm_vec2_angle(vec2 v)
+GM_API r32 gm_vec2_angle(vec2 v)
 {
 	return atan2f(v.y, v.x);
 }
 
-r32 gm_radians(r32 degrees)
+GM_API r32 gm_radians(r32 degrees)
 {
 	return PI_F * degrees / 180.0f;
 }
 
-r32 gm_degrees(r32 radians)
+GM_API r32 gm_degrees(r32 radians)
 {
 	return (radians * 180.0f) / PI_F;
 }
 
-vec4 gm_vec4_cross(vec4 v1, vec4 v2)
+GM_API vec4 gm_vec4_cross(vec4 v1, vec4 v2)
 {
 	assert(v1.w == 0.0f && v2.w == 0.0f);
 	vec4 result;
@@ -808,7 +828,7 @@ vec4 gm_vec4_cross(vec4 v1, vec4 v2)
 	return result;
 }
 
-vec3 gm_vec3_cross(vec3 v1, vec3 v2)
+GM_API vec3 gm_vec3_cross(vec3 v1, vec3 v2)
 {
 	vec3 result;
 
@@ -819,12 +839,12 @@ vec3 gm_vec3_cross(vec3 v1, vec3 v2)
 	return result;
 }
 
-r32 gm_absolute(r32 x)
+GM_API r32 gm_absolute(r32 x)
 {
 	return (x < 0) ? -x : x;
 }
 
-char* gm_mat4_to_string(char* buffer, const mat4* m)
+GM_API char* gm_mat4_to_string(char* buffer, const mat4* m)
 {
 	sprintf(buffer, "[%.5f, %.5f, %.5f, %.5f]\n[%.5f, %.5f, %.5f, %.5f]\n[%.5f, %.5f, %.5f, %.5f]\n[%.5f, %.5f, %.5f, %.5f]",
 		m->data[0][0], m->data[0][1], m->data[0][2], m->data[0][3],
@@ -834,7 +854,7 @@ char* gm_mat4_to_string(char* buffer, const mat4* m)
 	return buffer;
 }
 
-char* gm_mat3_to_string(char* buffer, const mat3* m)
+GM_API char* gm_mat3_to_string(char* buffer, const mat3* m)
 {
 	sprintf(buffer, "[%.5f, %.5f, %.5f]\n[%.5f, %.5f, %.5f]\n[%.5f, %.5f, %.5f]",
 		m->data[0][0], m->data[0][1], m->data[0][2],
@@ -843,7 +863,7 @@ char* gm_mat3_to_string(char* buffer, const mat3* m)
 	return buffer;
 }
 
-char* gm_mat2_to_string(char* buffer, const mat2* m)
+GM_API char* gm_mat2_to_string(char* buffer, const mat2* m)
 {
 	sprintf(buffer, "[%.5f, %.5f]\n[%.5f, %.5f]",
 		m->data[0][0], m->data[0][1],
@@ -851,25 +871,25 @@ char* gm_mat2_to_string(char* buffer, const mat2* m)
 	return buffer;
 }
 
-char* gm_vec4_to_string(char* buffer, vec4 v)
+GM_API char* gm_vec4_to_string(char* buffer, vec4 v)
 {
 	sprintf(buffer, "<%.5f, %.5f, %.5f, %.5f>", v.x, v.y, v.z, v.w);
 	return buffer;
 }
 
-char* gm_vec3_to_string(char* buffer, vec3 v)
+GM_API char* gm_vec3_to_string(char* buffer, vec3 v)
 {
 	sprintf(buffer, "<%.5f, %.5f, %.5f>", v.x, v.y, v.z);
 	return buffer;
 }
 
-char* gm_vec2_to_string(char* buffer, vec2 v)
+GM_API char* gm_vec2_to_string(char* buffer, vec2 v)
 {
 	sprintf(buffer, "<%.5f, %.5f>", v.x, v.y);
 	return buffer;
 }
 
-vec3 gm_vec4_to_vec3(vec4 v) {
+GM_API vec3 gm_vec4_to_vec3(vec4 v) {
 	return 
 	#if !defined(__cplusplus)
 	(vec3) 
