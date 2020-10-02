@@ -1,5 +1,6 @@
 #pragma once
 #include "batcher.h"
+#include "input.h"
 
 #define HHU_USE_GLFW 1
 #if defined(HHU_USE_GLFW)
@@ -8,5 +9,7 @@
 typedef struct {
     GLFWwindow* window;
     Hobatch_Context batch_ctx;
-} HHU_Context_Internal;
+} HHU_Context;
 #endif
+
+extern HHU_Context* hhuctx;

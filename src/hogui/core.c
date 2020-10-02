@@ -12,40 +12,44 @@
 
 static Font_Info font_info;
 
+hhu_color hhu_color_red   = (hhu_color){1,0,0,1};
+hhu_color hhu_color_green = (hhu_color){0,1,0,1};
+hhu_color hhu_color_blue  = (hhu_color){0,0,1,1};
+
 #if defined(_WIN32) || defined(_WIN64)
 const char* font_filename = "C:/Windows/Fonts/consola.ttf";
 #elif defined(__linux__)
 const char* font_filename = "./res/LiberationMono-Regular.ttf";
 #endif
 
-HHU_Context*
+HHU_Context* hhuctx;
+
+int
 hhu_init()
 {
-    HHU_Context_Internal* ctx = (HHU_Context_Internal*)calloc(1, sizeof(HHU_Context_Internal));
-    batch_init(&ctx->batch_ctx);
+    hhuctx = (HHU_Context*)calloc(1, sizeof(HHU_Context));
+    batch_init(&hhuctx->batch_ctx);
 
     if(font_load(font_filename, &font_info, 22) != FONT_LOAD_OK)
     {
         fprintf(stderr, "Could not load font\n");
-        return 0;
+        return -1;
     }
-
-
-    return (HHU_Context*)ctx;
-}
-
-int
-hhu_destroy(HHU_Context* ctx)
-{
     return 0;
 }
 
-void
-hhu_render(HHU_Context* ctx)
+int
+hhu_destroy()
 {
-    HHU_Context_Internal* ictx = (HHU_Context_Internal*)ctx;
+    free(hhuctx);
+    return 0;
+}
+
+int
+hhu_render()
+{
     #if 1
-    hinp_window_size(&ictx->batch_ctx.window_width, &ictx->batch_ctx.window_height);
+    hinp_window_size(&hhuctx->batch_ctx.window_width, &hhuctx->batch_ctx.window_height);
 
     static float x = 0, y = 0;
     Hinp_Event ev = {0};
@@ -53,7 +57,7 @@ hhu_render(HHU_Context* ctx)
     {
         if(ev.type == HINP_EVENT_MOUSE_MOVE)
         {
-            if(glfwGetMouseButton(ictx->window, 0) == 1)
+            if(glfwGetMouseButton(hhuctx->window, 0) == 1)
             {
                 if(hinp_query_mouse_inside())
                 {
@@ -63,25 +67,24 @@ hhu_render(HHU_Context* ctx)
             }
         }
     }
-    batch_render_quad_color_solid(&ictx->batch_ctx, (vec3){x,ictx->batch_ctx.window_height - y,0}, 100, 100, (vec4){1,1,1,1});
+    batch_render_quad_color_solid(&hhuctx->batch_ctx, (vec3){x,hhuctx->batch_ctx.window_height - y,0}, 100, 100, (vec4){1,1,1,1});
     #endif
 
     //if(g_hhu_input.keyboard.keys['X'].state == 1)
     //{
     //    text_render(&ictx->batch_ctx, &font_info, "Hello", sizeof("Hello")-1, 0, (vec2){8.0,8.0}, (vec4){0,0,FLT_MAX,FLT_MAX}, (vec4){0,0,0,1});
     //}
-    text_render(&ictx->batch_ctx, &font_info, "Hello#ff0000ff World", sizeof("Hello#ff0000ff World")-1, 0, (vec2){10,10}, (vec4){0,0,FLT_MAX,FLT_MAX}, (vec4){1,1,1,1});
+    text_render(&hhuctx->batch_ctx, &font_info, "Hello#ff0000ff World", sizeof("Hello#ff0000ff World")-1, 0, (vec2){10,10}, (vec4){0,0,FLT_MAX,FLT_MAX}, (vec4){1,1,1,1});
     //text_render(&ictx->batch_ctx, &font_info, "Hello#ff0000ff World# fii", 5, 0, (vec2){10,10}, (vec4){0,0,FLT_MAX,FLT_MAX}, (vec4){1,1,1,1});
 
-    batch_flush(&ictx->batch_ctx);
+    batch_flush(&hhuctx->batch_ctx);
 }
 
 #if defined(HHU_USE_GLFW)
 void
-hhu_glfw_init(HHU_Context* ctx, GLFWwindow* window)
+hhu_glfw_init(GLFWwindow* window)
 {
-    HHU_Context_Internal* ictx = (HHU_Context_Internal*)ctx;
-    ictx->window = window;
+    hhuctx->window = window;
 
     hinp_init(window);
 }

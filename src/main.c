@@ -9,6 +9,11 @@
 #include <unistd.h>
 #include <time.h>
 
+void render()
+{
+    hhu_window(100, 100, 200, 200, (hhu_color){1,1,1,1});
+}
+
 int main()
 {
     if (!glfwInit()) {
@@ -32,8 +37,8 @@ int main()
 
     glClearColor(0.2f, 0.2f, 0.23f, 1.0f);
 
-    HHU_Context* hhu_ctx = hhu_init();
-    hhu_glfw_init(hhu_ctx, window);
+    hhu_init();
+    hhu_glfw_init(window);
 
     int running = 1;
 
@@ -46,7 +51,8 @@ int main()
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        hhu_render(hhu_ctx);
+        render();
+        hhu_render();
 
         usleep(15000);
 

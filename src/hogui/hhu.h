@@ -1,14 +1,39 @@
 #pragma once
 
-typedef void HHU_Context;
+// Type definitions
+typedef struct {
+    float x, y;
+} hhu_v2;
 
-HHU_Context* hhu_init();
-int          hhu_destroy(HHU_Context* ctx);
-void         hhu_render(HHU_Context* ctx);
+typedef struct {
+    float x, y, z;
+} hhu_v3;
 
-//#if defined(HHU_USE_GLFW)
+typedef struct {
+    float x, y, z, w;
+} hhu_v4;
+
+typedef struct {
+    float r, g, b, a;
+} hhu_color;
+
+int hhu_init();
+int hhu_destroy();
+int hhu_render();
+
+// Colors
+extern hhu_color hhu_color_red;
+extern hhu_color hhu_color_green;
+extern hhu_color hhu_color_blue;
+
+// Core
+void hhu_window(float x, float y, float width, float height, hhu_color color);
+
+// -----------------------------------------
+// GLFW ------------------------------------
+#if defined(HHU_USE_GLFW)
 #include <GLFW/glfw3.h>
-void hhu_glfw_init(HHU_Context* ctx, GLFWwindow* window);
+void hhu_glfw_init(GLFWwindow* window);
 void hhu_glfw_set_callback_cursor_pos(GLFWcursorposfun cb);
 void hhu_glfw_set_callback_cursor_enter(GLFWcursorenterfun cb);
 void hhu_glfw_set_callback_key(GLFWkeyfun cb);
@@ -18,8 +43,4 @@ void hhu_glfw_set_callback_scroll(GLFWscrollfun cb);
 void hhu_glfw_set_callback_drop(GLFWdropfun cb);
 void hhu_glfw_set_callback_frame_buffer_size(GLFWframebuffersizefun cb);
 void hhu_glfw_set_callback_window_pos(GLFWwindowposfun cb);
-//#endif
-
-// Input functions
-int hhu_input_init(HHU_Context* ctx);
-int hhu_input_clear(HHU_Context* ctx);
+#endif
