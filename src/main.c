@@ -6,8 +6,10 @@
 #include <GLFW/glfw3.h>
 
 #include "hogui/hhu.h"
-#include <unistd.h>
 #include <time.h>
+#if defined(__linux__)
+#include <unistd.h>
+#endif
 
 void render()
 {
@@ -54,7 +56,9 @@ int main()
         render();
         hhu_render();
 
+#if defined(__linux__)
         usleep(15000);
+#endif
 
         glfwSwapBuffers(window);
     }

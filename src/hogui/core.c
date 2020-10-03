@@ -1,20 +1,21 @@
+
 #include "common.h"
 #include "hhu.h"
 #include "hhu_internal.h"
 #include <stdlib.h>
-#include "batcher.h"
 #include "input.h"
 #include "font_render.h"
 #include "font_load.h"
 #include <float.h>
 #define GRAPHICS_MATH_IMPLEMENT
 #include "gm.h"
+#include "batcher.h"
 
 static Font_Info font_info;
 
-hhu_color hhu_color_red   = (hhu_color){1,0,0,1};
-hhu_color hhu_color_green = (hhu_color){0,1,0,1};
-hhu_color hhu_color_blue  = (hhu_color){0,0,1,1};
+hhu_color hhu_color_red   = {1,0,0,1};
+hhu_color hhu_color_green = {0,1,0,1};
+hhu_color hhu_color_blue  = {0,0,1,1};
 
 #if defined(_WIN32) || defined(_WIN64)
 const char* font_filename = "C:/Windows/Fonts/consola.ttf";
@@ -68,7 +69,6 @@ hhu_render()
         }
     }
     batch_render_quad_color_solid(&hhuctx->batch_ctx, (vec3){x,hhuctx->batch_ctx.window_height - y,0}, 100, 100, (vec4){1,1,1,1});
-    #endif
 
     //if(g_hhu_input.keyboard.keys['X'].state == 1)
     //{
@@ -78,6 +78,7 @@ hhu_render()
     //text_render(&ictx->batch_ctx, &font_info, "Hello#ff0000ff World# fii", 5, 0, (vec2){10,10}, (vec4){0,0,FLT_MAX,FLT_MAX}, (vec4){1,1,1,1});
 
     batch_flush(&hhuctx->batch_ctx);
+    #endif
 }
 
 #if defined(HHU_USE_GLFW)
