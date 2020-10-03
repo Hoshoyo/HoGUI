@@ -1,4 +1,6 @@
 #pragma once
+#include <stdint.h>
+#include "common.h"
 
 // Type definitions
 typedef struct {
@@ -28,6 +30,9 @@ extern hhu_color hhu_color_blue;
 
 // Core
 void hhu_window(float x, float y, float width, float height, hhu_color color);
+
+bool hhu_is_hot(uint32_t id, int item, int index);
+bool hhu_is_active(uint32_t id, int item, int index);
 
 // -----------------------------------------
 // GLFW ------------------------------------
