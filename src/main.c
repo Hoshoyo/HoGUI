@@ -14,7 +14,11 @@
 void render()
 {
     static HGui_Window hwindow;
-    hhu_window(&hwindow);
+    static HGui_Window hwindow2;
+    hwindow.id = 1;
+    hwindow.id = 2;
+    hhu_window(&hwindow, "Window 1");
+    hhu_window(&hwindow2, "Window 2");
 }
 
 int main()

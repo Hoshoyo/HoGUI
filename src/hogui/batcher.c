@@ -522,3 +522,9 @@ batch_render_line(Hobatch_Context* ctx, vec3 start, vec3 end, vec4 color)
 
     ctx->lines_count++;
 }
+
+vec4
+batch_clipping_none()
+{
+    return (vec4){0,0,FLT_MAX,FLT_MAX};
+}

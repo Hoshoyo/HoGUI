@@ -37,6 +37,7 @@ typedef enum {
 } HGui_Window_Style;
 
 typedef struct {
+    int               id;
     uint32_t          flags;
     HGui_Window_Style style;
     float             x, y;
@@ -48,7 +49,7 @@ typedef struct {
 // Core
 void hhu_begin();
 void hhu_end();
-void hhu_window(HGui_Window* window);
+void hhu_window(HGui_Window* window, char* name);
 
 // -----------------------------------------
 // GLFW ------------------------------------

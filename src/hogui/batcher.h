@@ -52,5 +52,6 @@ void batch_render_quad_color_clipped(Hobatch_Context* ctx, vec3 position, r32 wi
 void batch_render_quad_color_solid_clipped(Hobatch_Context* ctx, vec3 position, r32 width, r32 height, vec4 color, vec4 clipping);
 
 vec4 batch_render_color_from_hex(uint32_t hex);
+vec4 batch_clipping_none();
 
 void batch_render_line(Hobatch_Context* ctx, vec3 start, vec3 end, vec4 color);
