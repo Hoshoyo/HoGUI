@@ -42,6 +42,8 @@ u32 batch_texture_create_from_data(const char* image_data, s32 width, s32 height
 void batch_init(Hobatch_Context* ctx);
 void batch_flush(Hobatch_Context* ctx);
 void batch_render_quad(Hobatch_Context* ctx, vec3 position, r32 width, r32 height, u32 texture_id, vec4 clipping, r32 blend_factor[4], vec4 color[4], vec2 texcoords[4], r32 red_alpha_override);
+void batch_render_quad_free(Hobatch_Context* ctx, vec3 position[4], u32 texture_id, vec4 clipping, r32 blend_factor[4], vec4 color[4], vec2 texcoords[4], r32 red_alpha_override);
+void batch_render_quad_free_color_solid(Hobatch_Context* ctx, vec3 position[4], vec4 color);
 void batch_render_quad_textured_clipped(Hobatch_Context* ctx, vec3 position, r32 width, r32 height, u32 texture_id, vec4 clipping);
 void batch_render_quad_textured(Hobatch_Context* ctx, vec3 position, r32 width, r32 height, u32 texture_id);
 void batch_render_quad_color(Hobatch_Context* ctx, vec3 position, r32 width, r32 height, vec4 color[4]);

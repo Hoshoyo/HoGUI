@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include "input.h"
 #include <GLFW/glfw3.h>
+#include <string.h>
+
 #define MAX_EVENTS 32
+#define MAX_MOUSE_BUTTONS 8
+
 typedef struct {
     GLFWcursorposfun       callback_cursor_pos;
     GLFWcursorenterfun     callback_cursor_enter;
@@ -22,7 +26,11 @@ typedef struct {
 
     // Mouse info
     float mouse_x, mouse_y;
+    float mouse_delta_x, mouse_delta_y;
     int   mouse_inside;
+    int   mouse_button_released[MAX_MOUSE_BUTTONS];
+    int   mouse_button_pressed[MAX_MOUSE_BUTTONS];
+    int   mouse_buttons[MAX_MOUSE_BUTTONS];
 
     // Window info
     float window_width, window_height;
@@ -128,6 +136,16 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         .mouse.button = button,
     };
     event_push(&ev);
+    if(action == GLFW_RELEASE)
+    {
+        ctx.mouse_button_released[button] = 1;
+        ctx.mouse_buttons[button] = 0;  // state
+    }
+    if(action == GLFW_PRESS)
+    {
+        ctx.mouse_button_pressed[button] = 1;
+        ctx.mouse_buttons[button] = 1;  // state
+    }
 
     if(ctx.callbacks.callback_mouse_button)
         ctx.callbacks.callback_mouse_button(window, button, action, mods);
@@ -164,6 +182,9 @@ cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     };
     ctx.mouse_x = (float)xpos;
     ctx.mouse_y = (float)ypos;
+
+    ctx.mouse_delta_x += ev.mouse.deltax;
+    ctx.mouse_delta_y += ev.mouse.deltay;
 
     event_push(&ev);
 
@@ -274,6 +295,15 @@ hinp_init(GLFWwindow* window)
 }
 
 void
+hinp_clear()
+{
+    ctx.mouse_delta_x = 0.0f;
+    ctx.mouse_delta_y = 0.0f;
+    memset(ctx.mouse_button_pressed, 0, sizeof(ctx.mouse_button_pressed));
+    memset(ctx.mouse_button_released, 0, sizeof(ctx.mouse_button_released));
+}
+
+void
 hinp_window_size(float* width, float* height)
 {
     int w = 0, h = 0;
@@ -282,6 +312,42 @@ hinp_window_size(float* width, float* height)
     *height = h;
 }
 
+void
+hinp_mouse_position(float* x, float* y)
+{
+    *x = ctx.mouse_x;
+    *y = ctx.mouse_y;
+}
+
+int
+hinp_mouse_button_released(int button)
+{
+    if(button > MAX_MOUSE_BUTTONS) return 0;
+    return(ctx.mouse_button_released[button]);
+}
+
+int 
+hinp_mouse_button_pressed(int button)
+{
+    if(button > MAX_MOUSE_BUTTONS) return 0;
+    return(ctx.mouse_button_pressed[button]);
+}
+
+int
+hinp_mouse_button_down(int button)
+{
+    if(button > MAX_MOUSE_BUTTONS) return 0;
+    return(ctx.mouse_buttons[button]);
+}
+
+void
+hinp_mouse_delta(float* x, float* y)
+{
+    *x = ctx.mouse_delta_x;
+    *y = ctx.mouse_delta_y;
+}
+
+// Callbacks
 void
 hhu_glfw_set_callback_cursor_pos(GLFWcursorposfun cb)
 {

@@ -37,6 +37,12 @@ typedef struct {
 } Hinp_Window;
 
 /* Mouse */
+typedef enum {
+    HINP_LBUTTON = 0,
+    HINP_RBUTTON = 1,
+    HINP_MBUTTON = 2,
+} Hinp_Mouse_Button;
+
 typedef struct {
     float x, y;             // current x and y coords
     float px, py;           // previous x and y
@@ -73,9 +79,17 @@ typedef struct {
 } Hinp_Event;
 
 int  hinp_init(GLFWwindow* window);
+void hinp_clear();
 void hinp_destroy();
+int  hinp_event_next(Hinp_Event* ev);
+
+// window
 void hinp_window_size(float* width, float* height);
+int  hinp_query_mouse_inside();
 
-int hinp_event_next(Hinp_Event* ev);
-
-int hinp_query_mouse_inside();
+// mouse
+void hinp_mouse_position(float* x, float* y);
+int  hinp_mouse_button_released(int button);
+int  hinp_mouse_button_pressed(int button);
+int  hinp_mouse_button_down(int button);
+void hinp_mouse_delta(float* x, float* y);

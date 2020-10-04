@@ -265,6 +265,83 @@ batch_flush(Hobatch_Context* ctx)
     render_lines(ctx);
 }
 
+void
+batch_render_quad_free(Hobatch_Context* ctx, vec3 position[4],
+    u32 texture_id, vec4 clipping, r32 blend_factor[4], vec4 color[4], 
+    vec2 texcoords[4], r32 red_alpha_override)
+{
+    if(((char*)ctx->qmem_ptr - (char*)ctx->qmem) >= BATCH_SIZE * sizeof(Hobatch_Vertex))
+    {
+        batch_flush(ctx);
+    }
+
+    s32 texture_unit_index = texture_id % ARRAY_LENGTH(ctx->textures);
+    s32 texture_unit = -1;
+
+    // If this is a new texture and we already have the max amount, flush it
+    if(ctx->tex_unit_next >= ctx->max_texture_units && 
+       !(ctx->textures[texture_unit_index].valid && ctx->textures[texture_unit_index].id != texture_id))
+    {
+        batch_flush(ctx);
+    }
+    
+    // search for a texture unit slot
+    while(ctx->textures[texture_unit_index].valid)
+    {
+        if(ctx->textures[texture_unit_index].id == texture_id)
+        {
+            texture_unit = ctx->textures[texture_unit_index].unit;
+            break;
+        }
+        texture_unit_index = (texture_unit_index + 1) % ARRAY_LENGTH(ctx->textures);
+    }
+
+    // we did not find a slot with this texture already, so grab the next available
+    if(texture_unit == -1)
+    {
+        texture_unit = ctx->tex_unit_next++;
+    }
+    ctx->textures[texture_unit_index].id = texture_id;
+    ctx->textures[texture_unit_index].unit = texture_unit;
+    ctx->textures[texture_unit_index].valid = true;
+
+    if(!ctx->qmem)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, ctx->qvbo);
+        ctx->qmem = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        ctx->qmem_ptr = ctx->qmem;
+    }
+
+    // 0 blend factor means full texture no color
+    Hobatch_Vertex v[] = 
+    {
+        {(vec3){position[0].x, position[0].y, position[0].z}, texcoords[0], color[0], clipping, blend_factor[0], (r32)texture_unit, red_alpha_override},
+        {(vec3){position[1].x, position[1].y, position[1].z}, texcoords[1], color[1], clipping, blend_factor[1], (r32)texture_unit, red_alpha_override},
+        {(vec3){position[2].x, position[2].y, position[2].z}, texcoords[2], color[2], clipping, blend_factor[2], (r32)texture_unit, red_alpha_override},
+        {(vec3){position[3].x, position[3].y, position[3].z}, texcoords[3], color[3], clipping, blend_factor[3], (r32)texture_unit, red_alpha_override},
+    };
+    
+    memcpy(ctx->qmem_ptr, v, sizeof(v));
+    ctx->qmem_ptr = ((char*)ctx->qmem_ptr) + sizeof(v);
+    ctx->quad_count += 1;
+}
+
+void
+batch_render_quad_free_color_solid(Hobatch_Context* ctx, vec3 position[4], vec4 color)
+{
+    vec4 clipping = (vec4){0,0,FLT_MAX,FLT_MAX};
+    r32 blend_factor[4] = {1,1,1,1};
+    vec2 texcoords[4] = 
+    {
+        (vec2){0.0f, 0.0f},
+        (vec2){1.0f, 0.0f},
+        (vec2){0.0f, 1.0f},
+        (vec2){1.0f, 1.0f}
+    };
+    vec4 c[] = {color, color, color, color};
+    batch_render_quad_free(ctx, position, 0, clipping, blend_factor, c, texcoords, 0.0f);
+}
+
 // bl, br, tl, tr
 void
 batch_render_quad(Hobatch_Context* ctx, vec3 position, 

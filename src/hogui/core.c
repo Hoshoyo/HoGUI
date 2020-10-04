@@ -49,7 +49,7 @@ hhu_destroy()
 int
 hhu_render()
 {
-    #if 1
+    #if 0
     hinp_window_size(&hhuctx->batch_ctx.window_width, &hhuctx->batch_ctx.window_height);
 
     static float x = 0, y = 0;
@@ -70,15 +70,27 @@ hhu_render()
     }
     batch_render_quad_color_solid(&hhuctx->batch_ctx, (vec3){x,hhuctx->batch_ctx.window_height - y,0}, 100, 100, (vec4){1,1,1,1});
 
-    //if(g_hhu_input.keyboard.keys['X'].state == 1)
-    //{
-    //    text_render(&ictx->batch_ctx, &font_info, "Hello", sizeof("Hello")-1, 0, (vec2){8.0,8.0}, (vec4){0,0,FLT_MAX,FLT_MAX}, (vec4){0,0,0,1});
-    //}
     text_render(&hhuctx->batch_ctx, &font_info, "Hello#ff0000ff World", sizeof("Hello#ff0000ff World")-1, 0, (vec2){10,10}, (vec4){0,0,FLT_MAX,FLT_MAX}, (vec4){1,1,1,1});
-    //text_render(&ictx->batch_ctx, &font_info, "Hello#ff0000ff World# fii", 5, 0, (vec2){10,10}, (vec4){0,0,FLT_MAX,FLT_MAX}, (vec4){1,1,1,1});
 
     batch_flush(&hhuctx->batch_ctx);
     #endif
+}
+
+void
+hhu_begin()
+{
+    hinp_window_size(&hhuctx->batch_ctx.window_width, &hhuctx->batch_ctx.window_height);
+    if(hinp_mouse_button_pressed(HINP_LBUTTON) && hhu_is_hot(0,0,0))
+    {
+        hhu_set_active(0,0,0);
+    }
+}
+
+void
+hhu_end()
+{
+    hinp_clear();
+    batch_flush(&hhuctx->batch_ctx);
 }
 
 #if defined(HHU_USE_GLFW)

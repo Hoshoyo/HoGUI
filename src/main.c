@@ -13,7 +13,8 @@
 
 void render()
 {
-    hhu_window(100, 100, 200, 200, (hhu_color){1,1,1,1});
+    static HGui_Window hwindow;
+    hhu_window(&hwindow);
 }
 
 int main()
@@ -53,8 +54,9 @@ int main()
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        hhu_begin();
         render();
-        hhu_render();
+        hhu_end();
 
 #if defined(__linux__)
         usleep(15000);

@@ -28,11 +28,27 @@ extern hhu_color hhu_color_red;
 extern hhu_color hhu_color_green;
 extern hhu_color hhu_color_blue;
 
-// Core
-void hhu_window(float x, float y, float width, float height, hhu_color color);
+// -----------------------------------------
+// Stateful Widgets ------------------------
 
-bool hhu_is_hot(uint32_t id, int item, int index);
-bool hhu_is_active(uint32_t id, int item, int index);
+typedef enum {
+    HGUI_WINDOW_STYLE_DARK,
+    HGUI_WINDOW_STYLE_LIGHT,
+} HGui_Window_Style;
+
+typedef struct {
+    uint32_t          flags;
+    HGui_Window_Style style;
+    float             x, y;
+    float             width, height;
+    float             header_size_px;
+    float             border_size_px;
+} HGui_Window;
+
+// Core
+void hhu_begin();
+void hhu_end();
+void hhu_window(HGui_Window* window);
 
 // -----------------------------------------
 // GLFW ------------------------------------
