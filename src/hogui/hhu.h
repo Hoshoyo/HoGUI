@@ -50,6 +50,7 @@ typedef struct {
 void hhu_begin();
 void hhu_end();
 void hhu_window(HGui_Window* window, char* name);
+bool hhu_button(uint32_t id, int item, int index, const char* name);
 
 // -----------------------------------------
 // GLFW ------------------------------------

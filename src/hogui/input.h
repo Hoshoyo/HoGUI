@@ -91,5 +91,7 @@ int  hinp_query_mouse_inside();
 void hinp_mouse_position(float* x, float* y);
 int  hinp_mouse_button_released(int button);
 int  hinp_mouse_button_pressed(int button);
+int  hinp_mouse_button_was_pressed(int button);
+int  hinp_mouse_button_was_released(int button);
 int  hinp_mouse_button_down(int button);
 void hinp_mouse_delta(float* x, float* y);

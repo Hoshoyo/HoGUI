@@ -4,6 +4,7 @@
 #define GRAPHICS_MATH_IMPLEMENT
 #include "gm.h"
 #include <GLFW/glfw3.h>
+#include "hogui/input.h"
 
 #include "hogui/hhu.h"
 #include <time.h>
@@ -15,10 +16,31 @@ void render()
 {
     static HGui_Window hwindow;
     static HGui_Window hwindow2;
+    static int max = 1;
     hwindow.id = 1;
     hwindow.id = 2;
     hhu_window(&hwindow, "Window 1");
-    hhu_window(&hwindow2, "Window 2");
+
+    Hinp_Event ev = {0};
+    while(hinp_event_next(&ev))
+    {
+        if(ev.type == HINP_EVENT_KEYBOARD)
+        {
+            if(ev.keyboard.key == 'X' && ev.keyboard.action == GLFW_RELEASE)
+            {
+                max++;
+            }
+        }
+    }
+
+    char buffer[64] = {0};
+    for(int i = 0; i < max; ++i)
+    {
+        sprintf(buffer, "Button %d\0", i + 1);
+        hhu_button(i+1, 0, 0, buffer);
+    }
+
+    //hhu_window(&hwindow2, "Window 2");
 }
 
 int main()

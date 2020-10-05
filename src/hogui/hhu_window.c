@@ -216,6 +216,8 @@ hhu_window(HGui_Window* window, char* name)
     if(!(window->flags & HGUI_WINDOW_FLAG_INITIALIZED))
         hhu_window_init_default(window);
 
+    bool lmouse_was_pressed = hinp_mouse_button_was_pressed(HINP_LBUTTON);
+
     if(hhu_is_active(id, 0, 0))
     {
         if(hinp_mouse_button_down(HINP_LBUTTON))
@@ -225,7 +227,7 @@ hhu_window(HGui_Window* window, char* name)
             hhu_v2 pos_now = mouse_pos();
             hhu_v2 pos_last_frame = (hhu_v2){pos_now.x - mdx, pos_now.y + mdy};
 
-            if(!is_resizing(window) && !is_dragging(window) && hhu_is_hot(id, 0, 0))
+            if(lmouse_was_pressed && !is_resizing(window) && !is_dragging(window) && hhu_is_hot(id, 0, 0))
             {
                 if(is_inside_header(pos_last_frame, window))
                 {

@@ -18,6 +18,7 @@ extern HHU_Context* hhuctx;
 
 void hhu_internal_init();
 void hhu_internal_end();
+
 bool hhu_is_hot(uint32_t id, int item, int index);
 bool hhu_is_active(uint32_t id, int item, int index);
 void hhu_set_active(uint32_t id, int item, int index);
@@ -25,6 +26,13 @@ void hhu_set_hot(uint32_t id, int item, int index);
 void hhu_reset_hot_index();
 void hhu_update_hot_conditionally(bool condition, uint32_t id, int item, int index);
 void hhu_push_container_stack(float x, float y, float width, float height);
+void hhu_pop_container_stack();
+void hhu_container_offset_get(float* x, float* y, float* width, float* height);
+void hhu_container_offset_update(float x, float y, float width, float height);
+void hhu_container_update_occupied_width(float v);
+void hhu_container_update_occupied_height(float v);
+void hhu_container_add_occupied_width(float v);
+void hhu_container_add_occupied_height(float v);
 
 typedef enum {
     HGUI_WINDOW_FLAG_INITIALIZED = (1 << 0),

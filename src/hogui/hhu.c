@@ -9,9 +9,20 @@ typedef struct {
     int      index;
 } Gui_Element;
 
+typedef enum {
+    GUI_CONTAINER_ALLOCATION_STRAT_TOP_DOWN,
+    GUI_CONTAINER_ALLOCATION_STRAT_BOT_UP,
+} Gui_Container_Allocation_Strategy;
+
 typedef struct {
+    Gui_Container_Allocation_Strategy strat;
     float x, y;
     float width, height;
+
+    float occupied_width;
+    float occupied_height;
+
+    hhu_v4 clipping;
 } Gui_Container;
 
 typedef struct {
@@ -90,13 +101,73 @@ hhu_push_container_stack(float x, float y, float width, float height)
     Gui_Container cont = {0};
     cont.x = x;
     cont.y = y;
+    cont.occupied_height = 0.0f;
+    cont.occupied_width = 0.0f;
     cont.width = width;
     cont.height = height;
     array_push(gui_ctx.cont_stack, cont);
 }
 
 void
+hhu_pop_container_stack()
+{
+    if(array_length(gui_ctx.cont_stack) > 0)
+        array_length(gui_ctx.cont_stack)--;
+}
+
+void
 hhu_internal_end()
 {
+    Gui_Container* cont = &gui_ctx.cont_stack[array_length(gui_ctx.cont_stack) - 1];
+    printf("%f %f\n", cont->occupied_width, cont->occupied_height);
     array_clear(gui_ctx.cont_stack);
+}
+
+void
+hhu_container_offset_get(float* x, float* y, float* width, float* height)
+{
+    Gui_Container* cont = &gui_ctx.cont_stack[array_length(gui_ctx.cont_stack) - 1];
+    *x = cont->x;
+    *y = cont->y;
+    *width = cont->width;
+    *height = cont->height;
+}
+
+void
+hhu_container_offset_update(float x, float y, float width, float height)
+{
+    Gui_Container* cont = &gui_ctx.cont_stack[array_length(gui_ctx.cont_stack) - 1];
+    cont->x = x;
+    cont->y = y;
+    cont->width = width;
+    cont->height = height;
+}
+
+void
+hhu_container_add_occupied_height(float v)
+{
+    Gui_Container* cont = &gui_ctx.cont_stack[array_length(gui_ctx.cont_stack) - 1];
+    cont->occupied_height += v;
+}
+
+void
+hhu_container_add_occupied_width(float v)
+{
+    Gui_Container* cont = &gui_ctx.cont_stack[array_length(gui_ctx.cont_stack) - 1];
+    cont->occupied_width += v;
+}
+
+void
+hhu_container_update_occupied_width(float v)
+{
+    Gui_Container* cont = &gui_ctx.cont_stack[array_length(gui_ctx.cont_stack) - 1];
+    if(cont->occupied_width < v)
+        cont->occupied_width = v;
+}
+
+void
+hhu_container_update_occupied_height(float v)
+{
+    Gui_Container* cont = &gui_ctx.cont_stack[array_length(gui_ctx.cont_stack) - 1];
+    cont->occupied_height = v;
 }

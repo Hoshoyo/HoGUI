@@ -30,6 +30,8 @@ typedef struct {
     int   mouse_inside;
     int   mouse_button_released[MAX_MOUSE_BUTTONS];
     int   mouse_button_pressed[MAX_MOUSE_BUTTONS];
+    int   mouse_button_was_released[MAX_MOUSE_BUTTONS];
+    int   mouse_button_was_pressed[MAX_MOUSE_BUTTONS];
     int   mouse_buttons[MAX_MOUSE_BUTTONS];
 
     // Window info
@@ -136,6 +138,7 @@ mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         .mouse.button = button,
     };
     event_push(&ev);
+
     if(action == GLFW_RELEASE)
     {
         ctx.mouse_button_released[button] = 1;
@@ -297,6 +300,12 @@ hinp_init(GLFWwindow* window)
 void
 hinp_clear()
 {
+    for(int i = 0; i < sizeof(ctx.mouse_button_pressed) / sizeof(*ctx.mouse_button_pressed); ++i)
+    {
+        ctx.mouse_button_was_pressed[i] = ctx.mouse_button_pressed[i];
+        ctx.mouse_button_was_released[i] = ctx.mouse_button_released[i];
+    }
+
     ctx.mouse_delta_x = 0.0f;
     ctx.mouse_delta_y = 0.0f;
     memset(ctx.mouse_button_pressed, 0, sizeof(ctx.mouse_button_pressed));
@@ -331,6 +340,20 @@ hinp_mouse_button_pressed(int button)
 {
     if(button > MAX_MOUSE_BUTTONS) return 0;
     return(ctx.mouse_button_pressed[button]);
+}
+
+int
+hinp_mouse_button_was_released(int button)
+{
+    if(button > MAX_MOUSE_BUTTONS) return 0;
+    return(ctx.mouse_button_was_released[button]);
+}
+
+int 
+hinp_mouse_button_was_pressed(int button)
+{
+    if(button > MAX_MOUSE_BUTTONS) return 0;
+    return(ctx.mouse_button_was_pressed[button]);
 }
 
 int
